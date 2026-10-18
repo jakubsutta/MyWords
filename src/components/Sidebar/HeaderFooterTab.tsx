@@ -1,6 +1,6 @@
 import React from 'react';
 import type { HeaderFooterSettings, TextAlignment, PageNumberFormat } from '../../types/editor';
-import { AlignLeft, AlignCenter, AlignRight, FileSpreadsheet, Hash } from 'lucide-react';
+import { AlignLeft, AlignCenter, AlignRight, FileSpreadsheet, Hash, BookOpen } from 'lucide-react';
 
 interface Props {
   settings: HeaderFooterSettings;
@@ -26,14 +26,35 @@ export const HeaderFooterTab: React.FC<Props> = ({ settings, onChange }) => {
         </div>
 
         {settings.showHeader && (
-          <div className="space-y-2 pt-1 animate-in fade-in">
-            <input
-              type="text"
-              placeholder="Text záhlaví (např. Název dokumentu)..."
-              value={settings.headerText}
-              onChange={(e) => onChange({ ...settings, headerText: e.target.value })}
-              className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            />
+          <div className="space-y-3 pt-1 animate-in fade-in">
+            <div>
+              <label className="block text-[11px] text-slate-500 mb-1">
+                {settings.differentOddEven ? 'Text záhlaví (liché / pravé stránky):' : 'Text záhlaví:'}
+              </label>
+              <input
+                type="text"
+                placeholder="Text záhlaví (např. Název kapitoly)..."
+                value={settings.headerText}
+                onChange={(e) => onChange({ ...settings, headerText: e.target.value })}
+                className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              />
+            </div>
+
+            {settings.differentOddEven && (
+              <div>
+                <label className="block text-[11px] text-slate-500 mb-1">
+                  Text záhlaví (sudé / levé stránky - kniha):
+                </label>
+                <input
+                  type="text"
+                  placeholder="Text záhlaví pro sudé stránky (např. Jméno autora)..."
+                  value={settings.evenHeaderText ?? ''}
+                  onChange={(e) => onChange({ ...settings, evenHeaderText: e.target.value })}
+                  className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                />
+              </div>
+            )}
+
             <div className="flex items-center gap-1">
               <span className="text-[11px] text-slate-500 mr-2">Zarovnání:</span>
               {(['left', 'center', 'right'] as TextAlignment[]).map((align) => (
@@ -73,14 +94,35 @@ export const HeaderFooterTab: React.FC<Props> = ({ settings, onChange }) => {
         </div>
 
         {settings.showFooter && (
-          <div className="space-y-2 pt-1 animate-in fade-in">
-            <input
-              type="text"
-              placeholder="Text zápatí (např. Důvěrné / Interní dokument)..."
-              value={settings.footerText}
-              onChange={(e) => onChange({ ...settings, footerText: e.target.value })}
-              className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            />
+          <div className="space-y-3 pt-1 animate-in fade-in">
+            <div>
+              <label className="block text-[11px] text-slate-500 mb-1">
+                {settings.differentOddEven ? 'Text zápatí (liché / pravé stránky):' : 'Text zápatí:'}
+              </label>
+              <input
+                type="text"
+                placeholder="Text zápatí (např. Důvěrné / Všechna práva vyhrazena)..."
+                value={settings.footerText}
+                onChange={(e) => onChange({ ...settings, footerText: e.target.value })}
+                className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              />
+            </div>
+
+            {settings.differentOddEven && (
+              <div>
+                <label className="block text-[11px] text-slate-500 mb-1">
+                  Text zápatí (sudé / levé stránky - kniha):
+                </label>
+                <input
+                  type="text"
+                  placeholder="Text zápatí pro sudé stránky..."
+                  value={settings.evenFooterText ?? ''}
+                  onChange={(e) => onChange({ ...settings, evenFooterText: e.target.value })}
+                  className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                />
+              </div>
+            )}
+
             <div className="flex items-center gap-1">
               <span className="text-[11px] text-slate-500 mr-2">Zarovnání:</span>
               {(['left', 'center', 'right'] as TextAlignment[]).map((align) => (
@@ -121,8 +163,9 @@ export const HeaderFooterTab: React.FC<Props> = ({ settings, onChange }) => {
             >
               <option value="none">Bez číslování</option>
               <option value="page">Strana 1</option>
-              <option value="page_of_total">Strana 1 z 1</option>
+              <option value="page_of_total">Strana 1 z X</option>
               <option value="dash">— 1 —</option>
+              <option value="roman">Římské číslice (I, II, III)</option>
             </select>
           </div>
 
@@ -150,8 +193,21 @@ export const HeaderFooterTab: React.FC<Props> = ({ settings, onChange }) => {
         </div>
       </div>
 
-      {/* Options */}
-      <div className="pt-1">
+      {/* Book & Page Options */}
+      <div className="space-y-2 pt-1 border-t border-slate-200">
+        <label className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={settings.differentOddEven}
+            onChange={(e) => onChange({ ...settings, differentOddEven: e.target.checked })}
+            className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+          />
+          <span className="flex items-center gap-1.5 font-medium">
+            <BookOpen className="w-3.5 h-3.5 text-indigo-600" />
+            Různé liché a sudé stránky (Kniha / Příručka)
+          </span>
+        </label>
+
         <label className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer">
           <input
             type="checkbox"
@@ -159,7 +215,7 @@ export const HeaderFooterTab: React.FC<Props> = ({ settings, onChange }) => {
             onChange={(e) => onChange({ ...settings, differentFirstPage: e.target.checked })}
             className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
           />
-          <span>Jiné záhlaví a zápatí na první stránce</span>
+          <span>Jiné záhlaví a zápatí na první stránce (Titulní list)</span>
         </label>
       </div>
     </div>

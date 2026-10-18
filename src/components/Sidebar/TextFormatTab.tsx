@@ -35,6 +35,7 @@ const FONTS = [
   { name: 'Lora (Čtivé esejistické)', value: 'Lora, serif' },
   { name: 'JetBrains Mono (Programátorské)', value: 'JetBrains Mono, monospace' },
   { name: 'Fira Code (Moderní kód)', value: 'Fira Code, monospace' },
+  { name: 'Segoe UI (Microsoft moderní)', value: '"Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, sans-serif' },
   { name: 'Arial', value: 'Arial, Helvetica, sans-serif' },
   { name: 'Georgia', value: 'Georgia, serif' },
   { name: 'Times New Roman', value: '"Times New Roman", Times, serif' },

@@ -1,12 +1,14 @@
-export type PageFormat = 'A4' | 'A5' | 'Letter' | 'Legal';
+export type PageFormat = 'A4' | 'A5' | 'Letter' | 'Legal' | 'B5';
 export type PageOrientation = 'portrait' | 'landscape';
-export type MarginPreset = 'normal' | 'narrow' | 'wide' | 'custom';
+export type MarginPreset = 'normal' | 'narrow' | 'wide' | 'book' | 'custom';
+export type DocumentLayoutType = 'standard' | 'book'; // standard single page vs book/handbook (facing pages)
 
 export interface PageMargins {
   top: number; // in mm
   bottom: number; // in mm
-  left: number; // in mm
-  right: number; // in mm
+  left: number; // in mm (or inner margin for book mode)
+  right: number; // in mm (or outer margin for book mode)
+  gutter?: number; // binding gutter (hřbet vazby) in mm
 }
 
 export interface PageSettings {
@@ -16,9 +18,13 @@ export interface PageSettings {
   margins: PageMargins;
   paperColor: string; // hex
   showRuler: boolean;
+  showMarginGuides: boolean; // Zobrazit vodící linky okrajů
+  layoutType: DocumentLayoutType; // standard vs kniha/příručka
+  gutter: number; // Hřbet vazby (mm)
+  mirrorMargins: boolean; // Zrcadlové okraje pro dvoustranný tisk
 }
 
-export type PageNumberFormat = 'none' | 'page' | 'page_of_total' | 'dash';
+export type PageNumberFormat = 'none' | 'page' | 'page_of_total' | 'dash' | 'roman';
 export type TextAlignment = 'left' | 'center' | 'right';
 
 export interface HeaderFooterSettings {
@@ -31,6 +37,9 @@ export interface HeaderFooterSettings {
   pageNumbering: PageNumberFormat;
   pageNumberPosition: TextAlignment;
   differentFirstPage: boolean;
+  differentOddEven: boolean; // Rozdílné záhlaví/zápatí pro sudé a liché stránky (kniha/příručka)
+  evenHeaderText?: string;
+  evenFooterText?: string;
 }
 
 export interface DocumentStats {

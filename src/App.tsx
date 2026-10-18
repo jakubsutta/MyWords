@@ -74,6 +74,10 @@ export const App: React.FC = () => {
       margins: { top: 25, bottom: 25, left: 25, right: 25 },
       paperColor: '#ffffff',
       showRuler: true,
+      showMarginGuides: true,
+      layoutType: 'standard',
+      gutter: 0,
+      mirrorMargins: false,
     };
   });
 
@@ -95,6 +99,9 @@ export const App: React.FC = () => {
       pageNumbering: 'page_of_total',
       pageNumberPosition: 'right',
       differentFirstPage: false,
+      differentOddEven: false,
+      evenHeaderText: 'MyWords — Autor & Kniha',
+      evenFooterText: 'Všechna práva vyhrazena',
     };
   });
 
@@ -260,6 +267,7 @@ export const App: React.FC = () => {
         zoom={zoom}
         onZoomChange={setZoom}
         pageSettings={pageSettings}
+        onPageSettingsChange={setPageSettings}
         headerFooterSettings={headerFooterSettings}
         viewMode={viewMode}
         onViewModeChange={setViewMode}

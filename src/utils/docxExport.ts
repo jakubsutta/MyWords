@@ -220,23 +220,40 @@ export async function exportToDocx(
   // Header & Footer
   let docHeader: Header | undefined;
   let docFooter: Footer | undefined;
+  let docEvenHeader: Header | undefined;
+  let docEvenFooter: Footer | undefined;
 
-  if (headerFooterSettings.showHeader && headerFooterSettings.headerText) {
+  if (headerFooterSettings.showHeader) {
     const align: (typeof AlignmentType)[keyof typeof AlignmentType] =
       headerFooterSettings.headerAlign === 'center'
         ? AlignmentType.CENTER
         : headerFooterSettings.headerAlign === 'right'
         ? AlignmentType.RIGHT
         : AlignmentType.LEFT;
-    docHeader = new Header({
-      children: [
-        new Paragraph({
-          text: headerFooterSettings.headerText,
-          alignment: align,
-          spacing: { after: 120 },
-        }),
-      ],
-    });
+
+    if (headerFooterSettings.headerText) {
+      docHeader = new Header({
+        children: [
+          new Paragraph({
+            text: headerFooterSettings.headerText,
+            alignment: align,
+            spacing: { after: 120 },
+          }),
+        ],
+      });
+    }
+
+    if (headerFooterSettings.differentOddEven && headerFooterSettings.evenHeaderText) {
+      docEvenHeader = new Header({
+        children: [
+          new Paragraph({
+            text: headerFooterSettings.evenHeaderText,
+            alignment: align,
+            spacing: { after: 120 },
+          }),
+        ],
+      });
+    }
   }
 
   if (headerFooterSettings.showFooter) {
@@ -269,6 +286,24 @@ export async function exportToDocx(
         }),
       ],
     });
+
+    if (headerFooterSettings.differentOddEven && headerFooterSettings.evenFooterText) {
+      const evenFooterChildren: (Paragraph | TextRun)[] = [
+        new TextRun({ text: headerFooterSettings.evenFooterText + '  ' }),
+      ];
+      if (headerFooterSettings.pageNumbering !== 'none') {
+        evenFooterChildren.push(new TextRun({ text: 'Strana ' }));
+        evenFooterChildren.push(new TextRun({ children: [PageNumber.CURRENT] }));
+      }
+      docEvenFooter = new Footer({
+        children: [
+          new Paragraph({
+            children: evenFooterChildren as any,
+            alignment: align,
+          }),
+        ],
+      });
+    }
   }
 
   const docFile = new Document({
@@ -281,6 +316,7 @@ export async function exportToDocx(
               bottom: mmToTwips(pageSettings.margins.bottom),
               left: mmToTwips(pageSettings.margins.left),
               right: mmToTwips(pageSettings.margins.right),
+              gutter: pageSettings.gutter ? mmToTwips(pageSettings.gutter) : undefined,
             },
             size: {
               orientation:
@@ -290,8 +326,8 @@ export async function exportToDocx(
             },
           },
         },
-        headers: docHeader ? { default: docHeader } : undefined,
-        footers: docFooter ? { default: docFooter } : undefined,
+        headers: docHeader || docEvenHeader ? { default: docHeader, even: docEvenHeader } : undefined,
+        footers: docFooter || docEvenFooter ? { default: docFooter, even: docEvenFooter } : undefined,
         children,
       },
     ],

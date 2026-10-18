@@ -13,6 +13,8 @@ import {
   FileCheck,
   Maximize2,
   Minimize2,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { triggerPrint } from '../utils/exportUtils';
 import { exportToDocx } from '../utils/docxExport';
@@ -25,6 +27,7 @@ interface Props {
   zoom: number;
   onZoomChange: (newZoom: number) => void;
   pageSettings: PageSettings;
+  onPageSettingsChange?: (settings: PageSettings) => void;
   headerFooterSettings: HeaderFooterSettings;
   viewMode: 'pages' | 'continuous';
   onViewModeChange: (mode: 'pages' | 'continuous') => void;
@@ -37,6 +40,7 @@ export const Header: React.FC<Props> = ({
   zoom,
   onZoomChange,
   pageSettings,
+  onPageSettingsChange,
   headerFooterSettings,
   viewMode,
   onViewModeChange,
@@ -181,8 +185,34 @@ export const Header: React.FC<Props> = ({
         </div>
       </div>
 
-      {/* Right Actions: Zoom & Quick Export */}
+      {/* Right Actions: Margin Guides Toggle, Zoom & Quick Export */}
       <div className="flex items-center gap-2">
+        {/* Toggle Margin Guides */}
+        {onPageSettingsChange && (
+          <button
+            type="button"
+            onClick={() =>
+              onPageSettingsChange({
+                ...pageSettings,
+                showMarginGuides: !pageSettings.showMarginGuides,
+              })
+            }
+            className={`hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
+              pageSettings.showMarginGuides
+                ? 'bg-blue-50 border-blue-300 text-blue-700 font-semibold'
+                : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+            }`}
+            title="Zobrazit/skrýt vodící linky okrajů"
+          >
+            {pageSettings.showMarginGuides ? (
+              <Eye className="w-3.5 h-3.5 text-blue-600" />
+            ) : (
+              <EyeOff className="w-3.5 h-3.5 text-slate-400" />
+            )}
+            <span>Okraje</span>
+          </button>
+        )}
+
         {/* Zoom */}
         <div className="hidden sm:flex items-center gap-1 text-xs text-slate-600 bg-slate-50 border border-slate-200 px-2 py-1 rounded-lg">
           <button
