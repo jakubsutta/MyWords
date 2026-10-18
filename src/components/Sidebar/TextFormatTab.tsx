@@ -18,6 +18,7 @@ import {
   RemoveFormatting,
   Palette,
   Highlighter,
+  SlidersVertical,
 } from 'lucide-react';
 
 interface Props {
@@ -37,6 +38,10 @@ const FONTS = [
   { name: 'Arial', value: 'Arial, Helvetica, sans-serif' },
   { name: 'Georgia', value: 'Georgia, serif' },
   { name: 'Times New Roman', value: '"Times New Roman", Times, serif' },
+];
+
+const FONT_SIZES = [
+  '9pt', '10pt', '11pt', '12pt', '14pt', '16pt', '18pt', '20pt', '24pt', '28pt', '32pt', '36pt', '48pt'
 ];
 
 const PRESET_COLORS = [
@@ -65,21 +70,46 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
 
   return (
     <div className="space-y-5">
-      {/* Font Family */}
+      {/* Font Family & Size */}
       <div>
         <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-          Druh písma (Font)
+          Písmo a velikost
         </label>
-        <select
-          onChange={(e) => editor.chain().focus().setFontFamily(e.target.value).run()}
-          className="w-full text-xs py-2 px-2.5 bg-white border border-slate-200 rounded-lg shadow-2xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
-        >
-          {FONTS.map((font) => (
-            <option key={font.name} value={font.value} style={{ fontFamily: font.value }}>
-              {font.name}
-            </option>
-          ))}
-        </select>
+        <div className="space-y-1.5">
+          <select
+            onChange={(e) => editor.chain().focus().setFontFamily(e.target.value).run()}
+            className="w-full text-xs py-2 px-2.5 bg-white border border-slate-200 rounded-lg shadow-2xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          >
+            {FONTS.map((font) => (
+              <option key={font.name} value={font.value} style={{ fontFamily: font.value }}>
+                {font.name}
+              </option>
+            ))}
+          </select>
+
+          <div className="flex items-center gap-1.5">
+            <span className="text-[11px] text-slate-500">Velikost:</span>
+            <select
+              onChange={(e) => editor.chain().focus().setFontSize(e.target.value).run()}
+              defaultValue="11pt"
+              className="flex-1 text-xs py-1.5 px-2 bg-white border border-slate-200 rounded-lg shadow-2xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            >
+              {FONT_SIZES.map((sz) => (
+                <option key={sz} value={sz}>
+                  {sz}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={() => editor.chain().focus().unsetFontSize().run()}
+              className="text-[10px] text-slate-500 hover:text-slate-800 px-2 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg"
+              title="Resetovat výchozí velikost"
+            >
+              Reset
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Paragraph Style / Headings */}
@@ -224,10 +254,10 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
         </div>
       </div>
 
-      {/* Alignment */}
-      <div>
-        <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-          Zarovnání odstavce
+      {/* Alignment & Line Spacing */}
+      <div className="space-y-2">
+        <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
+          Zarovnání & Řádkování
         </label>
         <div className="flex items-center gap-1 p-1 bg-slate-50 rounded-lg border border-slate-200">
           <button
@@ -278,6 +308,22 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
           >
             <AlignJustify className="w-4 h-4" />
           </button>
+        </div>
+
+        {/* Line spacing selector */}
+        <div className="flex items-center gap-1.5 pt-1">
+          <SlidersVertical className="w-3.5 h-3.5 text-slate-500" />
+          <span className="text-[11px] text-slate-600 font-medium">Řádkování:</span>
+          {(['1.0', '1.15', '1.5', '2.0'] as const).map((spacing) => (
+            <button
+              key={spacing}
+              type="button"
+              onClick={() => editor.chain().focus().setLineHeight(spacing).run()}
+              className="flex-1 py-1 text-xs rounded border border-slate-200 bg-white hover:bg-blue-50 hover:text-blue-700 text-slate-700 font-medium transition-colors"
+            >
+              {spacing}
+            </button>
+          ))}
         </div>
       </div>
 

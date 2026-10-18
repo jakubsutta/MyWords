@@ -39,9 +39,10 @@ export interface DocumentStats {
   charactersNoSpaces: number;
   paragraphs: number;
   readingTimeMinutes: number;
+  pageCount?: number;
 }
 
-export type SidebarTab = 'text' | 'insert' | 'page' | 'headerFooter' | 'export' | 'stats';
+export type SidebarTab = 'text' | 'insert' | 'page' | 'headerFooter' | 'outline' | 'export' | 'stats';
 
 export interface DocumentTemplate {
   id: string;
@@ -49,4 +50,11 @@ export interface DocumentTemplate {
   description: string;
   content: string;
   pageSettings?: Partial<PageSettings>;
+}
+
+export interface OutlineItem {
+  id: string;
+  text: string;
+  level: number;
+  pos: number;
 }

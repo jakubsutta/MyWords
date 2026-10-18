@@ -10,6 +10,7 @@ import { TextFormatTab } from './TextFormatTab';
 import { InsertTab } from './InsertTab';
 import { PageLayoutTab } from './PageLayoutTab';
 import { HeaderFooterTab } from './HeaderFooterTab';
+import { OutlineTab } from './OutlineTab';
 import { ExportPrintTab } from './ExportPrintTab';
 import { StatsToolsTab } from './StatsToolsTab';
 import {
@@ -17,6 +18,7 @@ import {
   PlusCircle,
   Layout,
   FileSpreadsheet,
+  ListTree,
   Download,
   BarChart2,
   ChevronLeft,
@@ -45,11 +47,12 @@ interface Props {
 }
 
 const TABS: { id: SidebarTab; label: string; icon: React.FC<{ className?: string }> }[] = [
-  { id: 'text', label: 'Formátování', icon: Type },
+  { id: 'text', label: 'Formát', icon: Type },
   { id: 'insert', label: 'Vložit', icon: PlusCircle },
   { id: 'page', label: 'Stránka', icon: Layout },
   { id: 'headerFooter', label: 'Záhlaví', icon: FileSpreadsheet },
-  { id: 'export', label: 'Export & Tisk', icon: Download },
+  { id: 'outline', label: 'Osnova', icon: ListTree },
+  { id: 'export', label: 'Export', icon: Download },
   { id: 'stats', label: 'Statistika', icon: BarChart2 },
 ];
 
@@ -129,7 +132,7 @@ export const Sidebar: React.FC<Props> = ({
         </div>
 
         {/* Tab buttons */}
-        <div className="grid grid-cols-6 p-1 gap-0.5 bg-slate-100/70 border-b border-slate-200">
+        <div className="grid grid-cols-7 p-1 gap-0.5 bg-slate-100/70 border-b border-slate-200">
           {TABS.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -138,15 +141,15 @@ export const Sidebar: React.FC<Props> = ({
                 key={tab.id}
                 type="button"
                 onClick={() => onTabChange(tab.id)}
-                className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg text-[10px] font-medium transition-all ${
+                className={`flex flex-col items-center justify-center py-2 px-0.5 rounded-lg text-[10px] font-medium transition-all ${
                   isActive
                     ? 'bg-white text-blue-600 shadow-2xs font-semibold'
                     : 'text-slate-500 hover:text-slate-800 hover:bg-white/50'
                 }`}
                 title={tab.label}
               >
-                <Icon className="w-4 h-4 mb-1" />
-                <span className="truncate w-full text-center leading-none">{tab.label}</span>
+                <Icon className="w-3.5 h-3.5 mb-1" />
+                <span className="truncate w-full text-center leading-none text-[9px]">{tab.label}</span>
               </button>
             );
           })}
@@ -170,6 +173,7 @@ export const Sidebar: React.FC<Props> = ({
         {activeTab === 'headerFooter' && (
           <HeaderFooterTab settings={headerFooterSettings} onChange={onHeaderFooterChange} />
         )}
+        {activeTab === 'outline' && <OutlineTab editor={editor} />}
         {activeTab === 'export' && (
           <ExportPrintTab
             editor={editor}

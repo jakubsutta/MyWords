@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import { Editor } from '@tiptap/react';
+import mammoth from 'mammoth';
 import type { PageSettings, HeaderFooterSettings } from '../../types/editor';
 import { exportToDocx } from '../../utils/docxExport';
 import {
@@ -20,6 +21,7 @@ import {
   Save,
   FolderOpen,
   Sparkles,
+  FileUp,
 } from 'lucide-react';
 
 interface Props {
@@ -42,6 +44,7 @@ export const ExportPrintTab: React.FC<Props> = ({
   onLoadProject,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const docxInputRef = useRef<HTMLInputElement>(null);
   const [exportingDocx, setExportingDocx] = React.useState(false);
   const [exportingPdf, setExportingPdf] = React.useState(false);
 
@@ -67,7 +70,6 @@ export const ExportPrintTab: React.FC<Props> = ({
       await exportToPdf(pageRef.current, title, pageSettings);
     } catch (err) {
       console.error('Chyba při exportu do PDF:', err);
-      // Fallback to print
       triggerPrint();
     } finally {
       setExportingPdf(false);
@@ -99,6 +101,25 @@ export const ExportPrintTab: React.FC<Props> = ({
         }
       };
       reader.readAsText(file);
+    }
+  };
+
+  const handleDocxImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const result = await mammoth.convertToHtml({ arrayBuffer });
+        if (result.value) {
+          const docTitle = file.name.replace(/\.[^/.]+$/, '');
+          onLoadTemplate(result.value, docTitle);
+        } else {
+          alert('Zvolený dokument je prázdný.');
+        }
+      } catch (err) {
+        console.error('Chyba importu DOCX:', err);
+        alert('Nepodařilo se načíst soubor Word (.docx). Ujistěte se, že jde o platný dokument DOCX.');
+      }
     }
   };
 
@@ -162,6 +183,28 @@ export const ExportPrintTab: React.FC<Props> = ({
             {exportingPdf && <span className="text-xs text-red-600 animate-pulse">Generuji...</span>}
           </button>
         </div>
+      </div>
+
+      {/* Import Word .docx souboru */}
+      <div>
+        <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
+          Import z Wordu
+        </label>
+        <input
+          ref={docxInputRef}
+          type="file"
+          accept=".docx"
+          onChange={handleDocxImport}
+          className="hidden"
+        />
+        <button
+          type="button"
+          onClick={() => docxInputRef.current?.click()}
+          className="w-full flex items-center justify-center gap-2 p-2.5 rounded-lg border border-indigo-200 bg-indigo-50/70 hover:bg-indigo-100/70 text-indigo-900 text-xs font-medium transition-all shadow-2xs"
+        >
+          <FileUp className="w-4 h-4 text-indigo-600" />
+          Otevřít a editovat soubor Word (.docx)...
+        </button>
       </div>
 
       {/* Další textové formáty */}

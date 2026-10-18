@@ -16,6 +16,9 @@ import TableCell from '@tiptap/extension-table-cell';
 import TableHeader from '@tiptap/extension-table-header';
 import Placeholder from '@tiptap/extension-placeholder';
 
+import { FontSize } from './extensions/FontSize';
+import { LineHeight } from './extensions/LineHeight';
+
 import type {
   PageSettings,
   HeaderFooterSettings,
@@ -115,6 +118,8 @@ export const App: React.FC = () => {
         types: ['heading', 'paragraph'],
       }),
       TextStyle,
+      FontSize,
+      LineHeight,
       Color,
       Highlight.configure({
         multicolor: true,
@@ -290,6 +295,7 @@ export const App: React.FC = () => {
             editor={editor}
             pageSettings={pageSettings}
             headerFooterSettings={headerFooterSettings}
+            onHeaderFooterChange={setHeaderFooterSettings}
             zoom={zoom}
             viewMode={viewMode}
             pageRef={pageRef}
