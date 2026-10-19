@@ -734,6 +734,7 @@ export const App: React.FC = () => {
           <EditorCanvas
             editor={editor}
             pageSettings={pageSettings}
+            onPageSettingsChange={handlePageSettingsChange}
             headerFooterSettings={headerFooterSettings}
             onHeaderFooterChange={handleHeaderFooterChange}
             zoom={zoom}
