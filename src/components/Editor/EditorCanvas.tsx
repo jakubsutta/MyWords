@@ -86,6 +86,12 @@ export const EditorCanvas: React.FC<Props> = ({
   const totalPages = Math.max(1, Math.max(pageCount, paginatedPages.length));
   const totalSpreads = Math.ceil((totalPages + 1) / 2);
 
+  useEffect(() => {
+    if (onPageCountChange) {
+      onPageCountChange(totalPages);
+    }
+  }, [totalPages, onPageCountChange]);
+
   // Calculate dynamic page count and listen to resize
   useEffect(() => {
     if (!pageRef.current || viewMode !== 'pages') return;
@@ -455,7 +461,16 @@ export const EditorCanvas: React.FC<Props> = ({
 
                     {/* Left Page Content */}
                     <div
-                      className="flex-1 w-full overflow-hidden text-slate-800 prose prose-slate max-w-none text-xs leading-relaxed select-text"
+                      contentEditable
+                      suppressContentEditableWarning
+                      onBlur={(e) => {
+                        if (spreadLeftPageNum) {
+                          const updated = [...paginatedPages];
+                          updated[spreadLeftPageNum - 1] = e.currentTarget.innerHTML;
+                          if (editor) editor.commands.setContent(updated.join(''));
+                        }
+                      }}
+                      className="flex-1 w-full overflow-y-auto text-slate-800 prose prose-slate max-w-none text-xs leading-relaxed focus:outline-none scrollbar-thin select-text"
                       dangerouslySetInnerHTML={{ __html: spreadLeftContent }}
                     />
 
@@ -564,17 +579,20 @@ export const EditorCanvas: React.FC<Props> = ({
                     </div>
                   )}
 
-                  {/* Right Page Content / Live Editor */}
-                  <div className="flex-1 w-full text-slate-800 focus:outline-none min-h-0 flex flex-col cursor-text relative z-5">
-                    {activeSpreadIndex === 0 ? (
-                      <EditorContent editor={editor} className="h-full flex-1 flex flex-col" />
-                    ) : (
-                      <div
-                        className="flex-1 w-full overflow-hidden text-slate-800 prose prose-slate max-w-none text-xs leading-relaxed select-text"
-                        dangerouslySetInnerHTML={{ __html: spreadRightContent }}
-                      />
-                    )}
-                  </div>
+                  {/* Right Page Content */}
+                  <div
+                    contentEditable
+                    suppressContentEditableWarning
+                    onBlur={(e) => {
+                      if (spreadRightPageNum) {
+                        const updated = [...paginatedPages];
+                        updated[spreadRightPageNum - 1] = e.currentTarget.innerHTML;
+                        if (editor) editor.commands.setContent(updated.join(''));
+                      }
+                    }}
+                    className="flex-1 w-full overflow-y-auto text-slate-800 prose prose-slate max-w-none text-xs leading-relaxed focus:outline-none scrollbar-thin select-text"
+                    dangerouslySetInnerHTML={{ __html: spreadRightContent }}
+                  />
 
                   {/* Right Page Footer */}
                   {headerFooterSettings.showFooter && (
@@ -595,6 +613,11 @@ export const EditorCanvas: React.FC<Props> = ({
                     </div>
                   )}
                 </div>
+              </div>
+
+              {/* Hidden EditorContent to preserve TipTap instance and shortcuts in Spread View */}
+              <div className="hidden" aria-hidden="true">
+                <EditorContent editor={editor} />
               </div>
 
               {/* Bottom Spread Switcher Pill */}
@@ -638,7 +661,7 @@ export const EditorCanvas: React.FC<Props> = ({
               style={{
                 backgroundColor: pageSettings.paperColor || '#ffffff',
                 width: viewMode === 'pages' ? `${widthMm}mm` : '100%',
-                minHeight: viewMode === 'pages' ? `${Math.max(1, pageCount) * heightMm}mm` : '600px',
+                minHeight: viewMode === 'pages' ? `${totalPages * heightMm}mm` : '600px',
                 paddingTop: `${pageSettings.margins.top}mm`,
                 paddingBottom: `${pageSettings.margins.bottom}mm`,
                 paddingLeft: `${defaultLeftMargin}mm`,
@@ -647,7 +670,7 @@ export const EditorCanvas: React.FC<Props> = ({
             >
               {/* Visual Header / Footer / Gutters for EVERY Page in Pages View */}
               {viewMode === 'pages' &&
-                Array.from({ length: Math.max(1, pageCount) }).map((_, pIdx) => {
+                Array.from({ length: totalPages }).map((_, pIdx) => {
                   const pNum = pIdx + 1;
                   const isEven = pNum % 2 === 0;
                   const pageMargins = getPageMargins(pNum);
@@ -805,7 +828,7 @@ export const EditorCanvas: React.FC<Props> = ({
                       )}
 
                       {/* Page Break Gap / Sheet Divider (Between pages) */}
-                      {pNum < pageCount && (
+                      {pNum < totalPages && (
                         <div
                           className="no-print absolute left-0 right-0 pointer-events-auto z-15 flex flex-col items-center group"
                           style={{ top: `${pageBottomMm}mm`, transform: 'translateY(-50%)' }}
@@ -841,10 +864,10 @@ export const EditorCanvas: React.FC<Props> = ({
               </div>
 
               {/* Total Page Count Badge at bottom right of canvas */}
-              {viewMode === 'pages' && pageCount > 1 && (
+              {viewMode === 'pages' && totalPages > 1 && (
                 <div className="no-print absolute right-3 bottom-3 flex items-center gap-1.5 pointer-events-none opacity-60 z-20">
                   <span className="text-[10px] font-mono bg-slate-800 text-white px-2 py-0.5 rounded-md shadow-xs">
-                    Celkem {pageCount} {pageCount === 1 ? 'strana' : pageCount < 5 ? 'strany' : 'stran'}
+                    Celkem {totalPages} {totalPages === 1 ? 'strana' : totalPages < 5 ? 'strany' : 'stran'}
                   </span>
                 </div>
               )}
