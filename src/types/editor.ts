@@ -1,4 +1,4 @@
-export type PageFormat = 'A4' | 'A5' | 'Letter' | 'Legal' | 'B5';
+export type PageFormat = 'A4' | 'A5' | 'A6' | 'Letter' | 'Legal' | 'B5';
 export type PageOrientation = 'portrait' | 'landscape';
 export type MarginPreset = 'normal' | 'narrow' | 'wide' | 'book' | 'custom';
 export type DocumentLayoutType = 'standard' | 'book'; // standard single page vs book/handbook (facing pages)
@@ -22,6 +22,7 @@ export interface PageSettings {
   layoutType: DocumentLayoutType; // standard vs kniha/příručka
   gutter: number; // Hřbet vazby (mm)
   mirrorMargins: boolean; // Zrcadlové okraje pro dvoustranný tisk
+  bookSpreadView?: boolean; // Zobrazit celou dvojstránku vedle sebe (levá + pravá)
 }
 
 export type PageNumberFormat = 'none' | 'page' | 'page_of_total' | 'dash' | 'roman';
@@ -51,7 +52,17 @@ export interface DocumentStats {
   pageCount?: number;
 }
 
-export type SidebarTab = 'text' | 'insert' | 'page' | 'headerFooter' | 'outline' | 'export' | 'stats';
+export type SidebarTab = 'projects' | 'text' | 'insert' | 'page' | 'headerFooter' | 'outline' | 'export' | 'stats';
+
+export interface Project {
+  id: string;
+  title: string;
+  content: string; // HTML format
+  pageSettings: PageSettings;
+  headerFooterSettings: HeaderFooterSettings;
+  createdAt: number;
+  updatedAt: number;
+}
 
 export interface DocumentTemplate {
   id: string;

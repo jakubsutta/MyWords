@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { X, Image as ImageIcon, Upload, Link as LinkIcon } from 'lucide-react';
 
 interface Props {
@@ -13,6 +13,23 @@ export const InsertImageModal: React.FC<Props> = ({ isOpen, onClose, onInsert })
   const [altText, setAltText] = useState('');
   const [preview, setPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleClose = useCallback(() => {
+    setImageUrl('');
+    setAltText('');
+    setPreview(null);
+    onClose();
+  }, [onClose]);
+
+  // Close on Escape key
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') handleClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, handleClose]);
 
   if (!isOpen) return null;
 
@@ -37,24 +54,24 @@ export const InsertImageModal: React.FC<Props> = ({ isOpen, onClose, onInsert })
     }
   };
 
-  const handleClose = () => {
-    setImageUrl('');
-    setAltText('');
-    setPreview(null);
-    onClose();
-  };
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-      <div className="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-slate-50/50">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-2xs p-4 animate-in fade-in duration-150"
+      onClick={handleClose}
+    >
+      <div
+        className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-150"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-slate-50/70">
           <div className="flex items-center gap-2 text-slate-800 font-semibold text-sm">
             <ImageIcon className="w-4 h-4 text-blue-600" />
             Vložit obrázek
           </div>
           <button
             onClick={handleClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+            className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 transition-colors"
+            title="Zavřít (Esc)"
           >
             <X className="w-4 h-4" />
           </button>
@@ -104,10 +121,16 @@ export const InsertImageModal: React.FC<Props> = ({ isOpen, onClose, onInsert })
               >
                 <Upload className="w-8 h-8 mx-auto text-slate-400 mb-2" />
                 <p className="text-xs font-medium text-slate-700">
-                  Klepněte pro výběr obrázku (PNG, JPG, SVG, WebP)
+                  Klepnutím vyberte obrázek (PNG, JPG, SVG, WebP)
                 </p>
-                <p className="text-[11px] text-slate-400 mt-1">Nebo přetáhněte soubor sem</p>
+                <p className="text-[11px] text-slate-400 mt-1">nebo jej přetáhněte sem</p>
               </div>
+
+              {preview && (
+                <div className="mt-3 relative rounded-lg overflow-hidden border border-slate-200 bg-slate-100 max-h-48 flex items-center justify-center p-2">
+                  <img src={preview} alt="Náhled" className="max-h-40 max-w-full object-contain rounded" />
+                </div>
+              )}
             </div>
           ) : (
             <div className="space-y-3">
@@ -123,36 +146,33 @@ export const InsertImageModal: React.FC<Props> = ({ isOpen, onClose, onInsert })
                     setImageUrl(e.target.value);
                     setPreview(e.target.value);
                   }}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 />
               </div>
-            </div>
-          )}
 
-          {preview && (
-            <div className="mt-4">
-              <p className="text-[11px] font-medium text-slate-500 mb-1">Náhled:</p>
-              <div className="max-h-40 overflow-hidden rounded-lg border border-slate-200 flex items-center justify-center bg-slate-50">
-                <img
-                  src={preview}
-                  alt="Náhled"
-                  onError={() => setPreview(null)}
-                  className="max-h-40 object-contain"
-                />
-              </div>
+              {preview && (
+                <div className="mt-2 rounded-lg overflow-hidden border border-slate-200 bg-slate-100 max-h-40 flex items-center justify-center p-2">
+                  <img
+                    src={preview}
+                    alt="Náhled"
+                    onError={() => setPreview(null)}
+                    className="max-h-36 max-w-full object-contain rounded"
+                  />
+                </div>
+              )}
             </div>
           )}
 
           <div className="mt-4">
             <label className="block text-xs font-medium text-slate-700 mb-1">
-              Popisek / Alternativní text
+              Popisek obrázku (Alt text)
             </label>
             <input
               type="text"
-              placeholder="Popis obrázku pro přístupnost a tisk"
+              placeholder="Popis pro čtečky obrazovky a tisk..."
               value={altText}
               onChange={(e) => setAltText(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
           </div>
 
@@ -168,9 +188,9 @@ export const InsertImageModal: React.FC<Props> = ({ isOpen, onClose, onInsert })
               type="button"
               onClick={handleInsert}
               disabled={!imageUrl.trim()}
-              className="px-4 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none rounded-lg shadow-xs transition-colors"
+              className="px-4 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:pointer-events-none rounded-lg shadow-xs transition-colors"
             >
-              Vložit obrázek
+              Vložit do dokumentu
             </button>
           </div>
         </div>

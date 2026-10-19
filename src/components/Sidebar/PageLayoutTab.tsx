@@ -6,7 +6,8 @@ import type {
   MarginPreset,
   DocumentLayoutType,
 } from '../../types/editor';
-import { Layout, FileText, Compass, Ruler, PaintBucket, Book, Eye, Columns } from 'lucide-react';
+import { PAGE_FORMATS } from '../../utils/formatConfig';
+import { Layout, FileText, Compass, Ruler, PaintBucket, Book, Eye, Columns, BookOpen } from 'lucide-react';
 
 interface Props {
   pageSettings: PageSettings;
@@ -32,19 +33,19 @@ export const PageLayoutTab: React.FC<Props> = ({ pageSettings, onChange }) => {
 
   const handleLayoutTypeChange = (layoutType: DocumentLayoutType) => {
     if (layoutType === 'book') {
-      // Automatic book margins & setup
       onChange({
         ...pageSettings,
         layoutType: 'book',
         format: pageSettings.format === 'Legal' ? 'A5' : pageSettings.format,
         marginPreset: 'book',
         mirrorMargins: true,
+        bookSpreadView: true,
         gutter: pageSettings.gutter || 10,
         margins: {
           top: 20,
           bottom: 25,
-          left: 20, // Vnitřní okraj
-          right: 15, // Vnější okraj
+          left: 20,
+          right: 15,
         },
         showMarginGuides: true,
       });
@@ -53,6 +54,7 @@ export const PageLayoutTab: React.FC<Props> = ({ pageSettings, onChange }) => {
         ...pageSettings,
         layoutType: 'standard',
         mirrorMargins: false,
+        bookSpreadView: false,
         marginPreset: 'normal',
         margins: { top: 25, bottom: 25, left: 25, right: 25 },
         gutter: 0,
@@ -98,35 +100,35 @@ export const PageLayoutTab: React.FC<Props> = ({ pageSettings, onChange }) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 text-xs">
       {/* Document Type: Standard vs Book/Handbook */}
       <div>
-        <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+        <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1">
           <Book className="w-3.5 h-3.5 text-blue-600" />
-          Typ dokumentu a rozvržení
+          Režim dokumentu
         </label>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-1.5">
           <button
             type="button"
             onClick={() => handleLayoutTypeChange('standard')}
-            className={`p-2.5 rounded-lg border text-xs font-medium text-left transition-all ${
+            className={`p-2 rounded-lg border text-left transition-all ${
               pageSettings.layoutType === 'standard'
-                ? 'border-blue-500 bg-blue-50/60 text-blue-700 shadow-2xs font-semibold'
+                ? 'border-blue-500 bg-blue-50/70 text-blue-700 shadow-2xs font-semibold'
                 : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
             }`}
           >
             <div className="font-semibold flex items-center gap-1.5">
               <FileText className="w-3.5 h-3.5 text-blue-600" />
-              Standardní dokument
+              Standardní
             </div>
-            <div className="text-[10px] text-slate-400 mt-0.5">Běžný dokument (dopis, zpráva)</div>
+            <div className="text-[10px] text-slate-400 mt-0.5">Běžný list (A4 / dopis)</div>
           </button>
           <button
             type="button"
             onClick={() => handleLayoutTypeChange('book')}
-            className={`p-2.5 rounded-lg border text-xs font-medium text-left transition-all ${
+            className={`p-2 rounded-lg border text-left transition-all ${
               pageSettings.layoutType === 'book'
-                ? 'border-blue-500 bg-blue-50/60 text-blue-700 shadow-2xs font-semibold'
+                ? 'border-indigo-500 bg-indigo-50/70 text-indigo-700 shadow-2xs font-semibold'
                 : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
             }`}
           >
@@ -134,224 +136,212 @@ export const PageLayoutTab: React.FC<Props> = ({ pageSettings, onChange }) => {
               <Book className="w-3.5 h-3.5 text-indigo-600" />
               Kniha / Příručka
             </div>
-            <div className="text-[10px] text-slate-400 mt-0.5">Dvoustránka, hřbet, zrcadlení</div>
+            <div className="text-[10px] text-slate-400 mt-0.5">Dvojstránka, hřbet, zrcadlení</div>
           </button>
         </div>
       </div>
+
+      {/* Book Spread View Toggle (Only shown when in book mode) */}
+      {pageSettings.layoutType === 'book' && (
+        <div className="p-2.5 bg-indigo-50/70 border border-indigo-200/80 rounded-xl space-y-1.5 animate-in fade-in">
+          <label className="flex items-center justify-between text-xs font-semibold text-indigo-950 cursor-pointer">
+            <span className="flex items-center gap-1.5">
+              <BookOpen className="w-4 h-4 text-indigo-600" />
+              Zobrazit celou dvojstránku
+            </span>
+            <label className="switch-toggle" onClick={(e) => e.stopPropagation()}>
+              <input
+                type="checkbox"
+                checked={pageSettings.bookSpreadView ?? true}
+                onChange={(e) => onChange({ ...pageSettings, bookSpreadView: e.target.checked })}
+              />
+              <span className="switch-slider" />
+            </label>
+          </label>
+          <p className="text-[10px] text-indigo-700/80 leading-relaxed">
+            Zobrazí v náhledu obě stránky vedle sebe (Levá sudá + Pravá lichá se hřbetem uprostřed).
+          </p>
+        </div>
+      )}
 
       {/* Visual margin guides toggle */}
-      <div className="p-3 bg-blue-50/70 border border-blue-200 rounded-xl space-y-2">
-        <label className="flex items-center justify-between text-xs font-semibold text-blue-900 cursor-pointer">
-          <span className="flex items-center gap-1.5">
-            <Eye className="w-4 h-4 text-blue-600" />
-            Zobrazit vodící linky okrajů
+      <div className={`p-2 rounded-lg flex items-center justify-between border transition-colors ${
+        pageSettings.showMarginGuides
+          ? 'bg-rose-50/70 border-rose-200'
+          : 'bg-slate-50/90 border-slate-200'
+      }`}>
+        <label className="flex items-center justify-between text-xs font-medium text-slate-700 cursor-pointer w-full">
+          <span className="flex items-center gap-2">
+            <Eye className={`w-3.5 h-3.5 shrink-0 ${pageSettings.showMarginGuides ? 'text-rose-600' : 'text-slate-400'}`} />
+            <span>Zobrazit vodící linky okrajů</span>
           </span>
-          <input
-            type="checkbox"
-            checked={pageSettings.showMarginGuides}
-            onChange={(e) => onChange({ ...pageSettings, showMarginGuides: e.target.checked })}
-            className="rounded border-blue-300 text-blue-600 focus:ring-blue-500 h-4 w-4"
-          />
+          <label className="switch-toggle" onClick={(e) => e.stopPropagation()}>
+            <input
+              type="checkbox"
+              checked={pageSettings.showMarginGuides}
+              onChange={(e) => onChange({ ...pageSettings, showMarginGuides: e.target.checked })}
+            />
+            <span className="switch-slider" />
+          </label>
         </label>
-        <p className="text-[11px] text-blue-700/80 leading-snug">
-          Vykreslí na stránce modré obrysy okrajů a oblast pro vazbu (při tisku se nezobrazí).
-        </p>
       </div>
 
-      {/* Paper Size */}
-      <div>
-        <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-          <FileText className="w-3.5 h-3.5 text-blue-600" />
-          Formát stránky
-        </label>
-        <div className="grid grid-cols-2 gap-2">
-          {(['A4', 'A5', 'B5', 'Letter', 'Legal'] as PageFormat[]).map((fmt) => (
+      {/* Paper Size & Orientation - Compact pills */}
+      <div className="grid grid-cols-2 gap-2">
+        <div>
+          <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-1">
+            <FileText className="w-3 h-3 text-slate-500" />
+            Formát
+          </label>
+          <select
+            value={pageSettings.format}
+            onChange={(e) => handleFormatChange(e.target.value as PageFormat)}
+            className="select-custom w-full py-1.5 pl-2.5 bg-white border border-slate-200 rounded-lg shadow-2xs text-xs font-medium text-slate-700 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:outline-none cursor-pointer transition-all"
+          >
+            {Object.values(PAGE_FORMATS).map((f) => (
+              <option key={f.id} value={f.id}>
+                {f.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-1">
+            <Compass className="w-3 h-3 text-slate-500" />
+            Orientace
+          </label>
+          <div className="flex items-center gap-0.5 p-0.5 bg-slate-100 rounded-lg border border-slate-200">
             <button
-              key={fmt}
               type="button"
-              onClick={() => handleFormatChange(fmt)}
-              className={`p-2.5 rounded-lg border text-xs font-medium text-left transition-all ${
-                pageSettings.format === fmt
-                  ? 'border-blue-500 bg-blue-50/60 text-blue-700 shadow-2xs font-semibold'
-                  : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
+              onClick={() => handleOrientationChange('portrait')}
+              className={`flex-1 py-1 text-[11px] rounded transition-all ${
+                pageSettings.orientation === 'portrait'
+                  ? 'bg-white text-blue-700 shadow-2xs font-semibold'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <div className="font-semibold">{fmt}</div>
-              <div className="text-[10px] text-slate-400">
-                {fmt === 'A4'
-                  ? '210 × 297 mm'
-                  : fmt === 'A5'
-                  ? '148 × 210 mm (Ideální pro knihy)'
-                  : fmt === 'B5'
-                  ? '176 × 250 mm'
-                  : fmt === 'Letter'
-                  ? '8.5 × 11 in'
-                  : '8.5 × 14 in'}
-              </div>
+              Portrét
             </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Orientation */}
-      <div>
-        <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-          <Compass className="w-3.5 h-3.5 text-blue-600" />
-          Orientace listu
-        </label>
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={() => handleOrientationChange('portrait')}
-            className={`flex items-center justify-center gap-2 p-2.5 rounded-lg border text-xs font-medium transition-all ${
-              pageSettings.orientation === 'portrait'
-                ? 'border-blue-500 bg-blue-50/60 text-blue-700 shadow-2xs font-semibold'
-                : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
-            }`}
-          >
-            <div className="w-3.5 h-5 border-2 border-current rounded-xs" />
-            Na výšku (Portrét)
-          </button>
-          <button
-            type="button"
-            onClick={() => handleOrientationChange('landscape')}
-            className={`flex items-center justify-center gap-2 p-2.5 rounded-lg border text-xs font-medium transition-all ${
-              pageSettings.orientation === 'landscape'
-                ? 'border-blue-500 bg-blue-50/60 text-blue-700 shadow-2xs font-semibold'
-                : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
-            }`}
-          >
-            <div className="w-5 h-3.5 border-2 border-current rounded-xs" />
-            Na šířku (Krajina)
-          </button>
+            <button
+              type="button"
+              onClick={() => handleOrientationChange('landscape')}
+              className={`flex-1 py-1 text-[11px] rounded transition-all ${
+                pageSettings.orientation === 'landscape'
+                  ? 'bg-white text-blue-700 shadow-2xs font-semibold'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Krajina
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Margins */}
-      <div>
-        <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-          <Layout className="w-3.5 h-3.5 text-blue-600" />
+      <div className="space-y-1.5">
+        <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+          <Layout className="w-3 h-3 text-slate-500" />
           Okraje stránky
         </label>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 mb-3">
-          <button
-            type="button"
-            onClick={() => handleMarginPresetChange('normal')}
-            className={`p-2 rounded-lg border text-xs text-center transition-all ${
-              pageSettings.marginPreset === 'normal'
-                ? 'border-blue-500 bg-blue-50/60 text-blue-700 font-semibold'
-                : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
-            }`}
-          >
-            <div className="font-medium">Normální</div>
-            <div className="text-[10px] text-slate-400">25 mm</div>
-          </button>
-          <button
-            type="button"
-            onClick={() => handleMarginPresetChange('narrow')}
-            className={`p-2 rounded-lg border text-xs text-center transition-all ${
-              pageSettings.marginPreset === 'narrow'
-                ? 'border-blue-500 bg-blue-50/60 text-blue-700 font-semibold'
-                : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
-            }`}
-          >
-            <div className="font-medium">Úzké</div>
-            <div className="text-[10px] text-slate-400">12.7 mm</div>
-          </button>
-          <button
-            type="button"
-            onClick={() => handleMarginPresetChange('wide')}
-            className={`p-2 rounded-lg border text-xs text-center transition-all ${
-              pageSettings.marginPreset === 'wide'
-                ? 'border-blue-500 bg-blue-50/60 text-blue-700 font-semibold'
-                : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
-            }`}
-          >
-            <div className="font-medium">Široké</div>
-            <div className="text-[10px] text-slate-400">35 mm</div>
-          </button>
-          <button
-            type="button"
-            onClick={() => handleMarginPresetChange('book')}
-            className={`p-2 rounded-lg border text-xs text-center transition-all ${
-              pageSettings.marginPreset === 'book'
-                ? 'border-indigo-500 bg-indigo-50/60 text-indigo-700 font-semibold'
-                : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
-            }`}
-          >
-            <div className="font-medium">Knižní</div>
-            <div className="text-[10px] text-slate-400">Hřbet +10</div>
-          </button>
+        <div className="grid grid-cols-4 gap-1">
+          {(['normal', 'narrow', 'wide', 'book'] as MarginPreset[]).map((preset) => (
+            <button
+              key={preset}
+              type="button"
+              onClick={() => handleMarginPresetChange(preset)}
+              className={`py-1 text-center rounded border text-[11px] transition-all ${
+                pageSettings.marginPreset === preset
+                  ? 'border-blue-500 bg-blue-50 text-blue-700 font-semibold'
+                  : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
+              }`}
+            >
+              {preset === 'normal'
+                ? 'Normální'
+                : preset === 'narrow'
+                ? 'Úzké'
+                : preset === 'wide'
+                ? 'Široké'
+                : 'Kniha'}
+            </button>
+          ))}
         </div>
 
-        {/* Custom margin inputs & Gutter */}
-        <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
-          <div className="text-[11px] font-medium text-slate-600 flex items-center justify-between">
-            <span>Rozměry okrajů (mm):</span>
-            {pageSettings.layoutType === 'book' && (
-              <span className="text-[10px] text-indigo-600 font-medium">Režim kniha (vnitřní/vnější)</span>
-            )}
+        {/* Custom margin inputs & Gutter in compact grid */}
+        <div className="p-2.5 bg-slate-50/90 rounded-xl border border-slate-200 space-y-2">
+          <div className="flex items-center justify-between text-[10px] text-slate-500 font-medium">
+            <span>Nastavení okrajů (cm):</span>
+            <span className="text-slate-400 font-mono">1 cm = 10 mm</span>
           </div>
-          <div className="grid grid-cols-2 gap-2 text-xs">
+
+          <div className="grid grid-cols-4 gap-1.5 text-center">
             <div>
-              <span className="text-[10px] text-slate-400">Nahoře:</span>
+              <span className="text-[10px] text-slate-500 font-semibold block mb-0.5">Nahoře</span>
               <input
                 type="number"
-                min="5"
-                max="60"
-                value={pageSettings.margins.top}
-                onChange={(e) => handleCustomMarginChange('top', Number(e.target.value))}
-                className="w-full px-2 py-1 bg-white border border-slate-300 rounded text-xs"
+                step="0.1"
+                min="0.5"
+                max="6.0"
+                value={(pageSettings.margins.top / 10).toFixed(1)}
+                onChange={(e) => handleCustomMarginChange('top', Math.round(parseFloat(e.target.value || '0') * 10))}
+                className="w-full px-1 py-1 bg-white border border-slate-200 rounded-lg text-xs text-center font-mono focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:outline-none"
               />
+              <span className="text-[9px] text-slate-400 block mt-0.5 font-mono">{pageSettings.margins.top} mm</span>
             </div>
             <div>
-              <span className="text-[10px] text-slate-400">Dole:</span>
+              <span className="text-[10px] text-slate-500 font-semibold block mb-0.5">Dole</span>
               <input
                 type="number"
-                min="5"
-                max="60"
-                value={pageSettings.margins.bottom}
-                onChange={(e) => handleCustomMarginChange('bottom', Number(e.target.value))}
-                className="w-full px-2 py-1 bg-white border border-slate-300 rounded text-xs"
+                step="0.1"
+                min="0.5"
+                max="6.0"
+                value={(pageSettings.margins.bottom / 10).toFixed(1)}
+                onChange={(e) => handleCustomMarginChange('bottom', Math.round(parseFloat(e.target.value || '0') * 10))}
+                className="w-full px-1 py-1 bg-white border border-slate-200 rounded-lg text-xs text-center font-mono focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:outline-none"
               />
+              <span className="text-[9px] text-slate-400 block mt-0.5 font-mono">{pageSettings.margins.bottom} mm</span>
             </div>
             <div>
-              <span className="text-[10px] text-slate-400">
-                {pageSettings.layoutType === 'book' ? 'Vnitřní (k vazbě):' : 'Vlevo:'}
+              <span className="text-[10px] text-slate-500 font-semibold block mb-0.5 truncate" title={pageSettings.layoutType === 'book' ? 'Vnitřní' : 'Vlevo'}>
+                {pageSettings.layoutType === 'book' ? 'Vnitřní' : 'Vlevo'}
               </span>
               <input
                 type="number"
-                min="5"
-                max="60"
-                value={pageSettings.margins.left}
-                onChange={(e) => handleCustomMarginChange('left', Number(e.target.value))}
-                className="w-full px-2 py-1 bg-white border border-slate-300 rounded text-xs"
+                step="0.1"
+                min="0.5"
+                max="6.0"
+                value={(pageSettings.margins.left / 10).toFixed(1)}
+                onChange={(e) => handleCustomMarginChange('left', Math.round(parseFloat(e.target.value || '0') * 10))}
+                className="w-full px-1 py-1 bg-white border border-slate-200 rounded-lg text-xs text-center font-mono focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:outline-none"
               />
+              <span className="text-[9px] text-slate-400 block mt-0.5 font-mono">{pageSettings.margins.left} mm</span>
             </div>
             <div>
-              <span className="text-[10px] text-slate-400">
-                {pageSettings.layoutType === 'book' ? 'Vnější (okraj):' : 'Vpravo:'}
+              <span className="text-[10px] text-slate-500 font-semibold block mb-0.5 truncate" title={pageSettings.layoutType === 'book' ? 'Vnější' : 'Vpravo'}>
+                {pageSettings.layoutType === 'book' ? 'Vnější' : 'Vpravo'}
               </span>
               <input
                 type="number"
-                min="5"
-                max="60"
-                value={pageSettings.margins.right}
-                onChange={(e) => handleCustomMarginChange('right', Number(e.target.value))}
-                className="w-full px-2 py-1 bg-white border border-slate-300 rounded text-xs"
+                step="0.1"
+                min="0.5"
+                max="6.0"
+                value={(pageSettings.margins.right / 10).toFixed(1)}
+                onChange={(e) => handleCustomMarginChange('right', Math.round(parseFloat(e.target.value || '0') * 10))}
+                className="w-full px-1 py-1 bg-white border border-slate-200 rounded-lg text-xs text-center font-mono focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:outline-none"
               />
+              <span className="text-[9px] text-slate-400 block mt-0.5 font-mono">{pageSettings.margins.right} mm</span>
             </div>
           </div>
 
           {/* Hřbet vazby (Gutter) */}
           <div className="pt-2 border-t border-slate-200">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-[11px] font-medium text-slate-700 flex items-center gap-1">
-                <Columns className="w-3 h-3 text-slate-500" />
+              <span className="text-[10px] font-semibold text-slate-600 flex items-center gap-1">
+                <Columns className="w-3 h-3 text-rose-500" />
                 Hřbet vazby (Gutter):
               </span>
-              <span className="text-xs font-mono font-semibold text-slate-800">
-                {pageSettings.gutter || 0} mm
+              <span className="text-[11px] font-mono font-semibold text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200/80">
+                {((pageSettings.gutter || 0) / 10).toFixed(1)} cm ({pageSettings.gutter || 0} mm)
               </span>
             </div>
             <input
@@ -361,69 +351,58 @@ export const PageLayoutTab: React.FC<Props> = ({ pageSettings, onChange }) => {
               step="1"
               value={pageSettings.gutter || 0}
               onChange={(e) => onChange({ ...pageSettings, gutter: Number(e.target.value) })}
-              className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+              className="w-full h-1 bg-slate-200 rounded appearance-none cursor-pointer accent-rose-600"
             />
-            <div className="flex justify-between text-[9px] text-slate-400 mt-0.5">
-              <span>0 mm (bez vazby)</span>
-              <span>10 mm (sešit)</span>
-              <span>20 mm (pevná vazba)</span>
-            </div>
           </div>
 
           {/* Zrcadlové okraje toggle */}
-          <label className="flex items-center gap-2 pt-1 text-xs text-slate-700 cursor-pointer">
+          <label className="flex items-center gap-1.5 pt-0.5 text-[11px] text-slate-700 cursor-pointer">
             <input
               type="checkbox"
               checked={pageSettings.mirrorMargins}
               onChange={(e) => onChange({ ...pageSettings, mirrorMargins: e.target.checked })}
-              className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+              className="rounded border-slate-300 text-rose-600 focus:ring-rose-500 h-3.5 w-3.5"
             />
-            <span>Zrcadlové okraje pro oboustranný tisk</span>
+            <span>Zrcadlové okraje (oboustranně)</span>
           </label>
         </div>
       </div>
 
-      {/* Paper Color */}
-      <div>
-        <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-          <PaintBucket className="w-3.5 h-3.5 text-blue-600" />
-          Barva listu papíru
-        </label>
-        <div className="flex items-center gap-2">
-          {PAPER_COLORS.map((color) => (
-            <button
-              key={color.name}
-              type="button"
-              onClick={() => onChange({ ...pageSettings, paperColor: color.value })}
-              style={{ backgroundColor: color.value, borderColor: color.border }}
-              className={`w-7 h-7 rounded-full border-2 transition-all ${
-                pageSettings.paperColor === color.value ? 'ring-2 ring-blue-500 scale-110 shadow-xs' : ''
-              }`}
-              title={color.name}
+      {/* Paper Color & Ruler - compact row */}
+      <div className="flex items-center justify-between pt-1 border-t border-slate-200">
+        <div className="flex items-center gap-1.5">
+          <PaintBucket className="w-3.5 h-3.5 text-slate-400" />
+          <div className="flex items-center gap-1">
+            {PAPER_COLORS.slice(0, 4).map((color) => (
+              <button
+                key={color.name}
+                type="button"
+                onClick={() => onChange({ ...pageSettings, paperColor: color.value })}
+                style={{ backgroundColor: color.value, borderColor: color.border }}
+                className={`w-4 h-4 rounded-full border transition-all ${
+                  pageSettings.paperColor === color.value ? 'ring-2 ring-blue-500 scale-110 shadow-xs' : ''
+                }`}
+                title={color.name}
+              />
+            ))}
+            <input
+              type="color"
+              value={pageSettings.paperColor}
+              onChange={(e) => onChange({ ...pageSettings, paperColor: e.target.value })}
+              className="w-4 h-4 rounded-full cursor-pointer ml-0.5 border border-slate-300"
+              title="Vlastní barva"
             />
-          ))}
-          <input
-            type="color"
-            value={pageSettings.paperColor}
-            onChange={(e) => onChange({ ...pageSettings, paperColor: e.target.value })}
-            className="w-7 h-7 rounded-full cursor-pointer ml-auto border border-slate-300"
-            title="Vlastní odstín papíru"
-          />
+          </div>
         </div>
-      </div>
 
-      {/* Ruler toggle */}
-      <div className="pt-2 border-t border-slate-200">
-        <label className="flex items-center justify-between text-xs font-medium text-slate-700 cursor-pointer">
-          <span className="flex items-center gap-1.5">
-            <Ruler className="w-3.5 h-3.5 text-slate-500" />
-            Zobrazit vodorovné pravítko
-          </span>
+        <label className="flex items-center gap-1.5 text-[11px] font-medium text-slate-600 cursor-pointer">
+          <Ruler className="w-3 h-3 text-slate-400" />
+          <span>Pravítko</span>
           <input
             type="checkbox"
             checked={pageSettings.showRuler}
             onChange={(e) => onChange({ ...pageSettings, showRuler: e.target.checked })}
-            className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+            className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-3.5 w-3.5"
           />
         </label>
       </div>

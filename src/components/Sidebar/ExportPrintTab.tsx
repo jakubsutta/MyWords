@@ -30,7 +30,7 @@ interface Props {
   pageSettings: PageSettings;
   headerFooterSettings: HeaderFooterSettings;
   pageRef: React.RefObject<HTMLDivElement | null>;
-  onLoadTemplate: (content: string, title?: string) => void;
+  onLoadTemplate: (content: string, title?: string, asNewProject?: boolean) => void;
   onLoadProject: (projectData: any) => void;
 }
 
@@ -124,72 +124,49 @@ export const ExportPrintTab: React.FC<Props> = ({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Tisk a primární export */}
+    <div className="space-y-3.5 text-xs">
+      {/* Tisk a hlavní export - Compact grid */}
       <div>
-        <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
-          Tisk & Hlavní export
+        <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+          Tisk & Export
         </label>
-        <div className="space-y-2">
+        <div className="grid grid-cols-3 gap-1.5">
           <button
             type="button"
             onClick={triggerPrint}
-            className="w-full flex items-center justify-between p-3 rounded-xl border border-blue-200 bg-blue-50/70 hover:bg-blue-100/70 text-blue-900 transition-all font-medium text-xs shadow-2xs group"
+            className="flex flex-col items-center justify-center p-2 rounded-lg border border-blue-200 bg-blue-50/70 hover:bg-blue-100 text-blue-900 transition-all shadow-2xs text-center"
+            title="Tisk nebo Uložit jako PDF"
           >
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 bg-blue-600 text-white rounded-lg group-hover:scale-105 transition-transform">
-                <Printer className="w-4 h-4" />
-              </div>
-              <div className="text-left">
-                <div className="font-semibold text-blue-900">Vytisknout dokument</div>
-                <div className="text-[11px] text-blue-700/80">Přímý tisk nebo uložení jako vektorové PDF</div>
-              </div>
-            </div>
+            <Printer className="w-4 h-4 text-blue-600 mb-1" />
+            <span className="font-semibold text-[11px]">Tisk</span>
           </button>
 
           <button
             type="button"
             onClick={handleDocxExport}
             disabled={exportingDocx}
-            className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 bg-white hover:border-blue-500 hover:bg-slate-50 transition-all font-medium text-xs shadow-2xs group"
+            className="flex flex-col items-center justify-center p-2 rounded-lg border border-slate-200 bg-white hover:border-blue-400 hover:bg-slate-50 transition-all text-slate-800 shadow-2xs text-center"
+            title="Word (.docx)"
           >
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 bg-blue-700 text-white rounded-lg group-hover:scale-105 transition-transform">
-                <FileType className="w-4 h-4" />
-              </div>
-              <div className="text-left">
-                <div className="font-semibold text-slate-800">Exportovat do DOCX</div>
-                <div className="text-[11px] text-slate-500">Kompatibilní s Word, Pages a LibreOffice</div>
-              </div>
-            </div>
-            {exportingDocx && <span className="text-xs text-blue-600 animate-pulse">Generuji...</span>}
+            <FileType className="w-4 h-4 text-blue-600 mb-1" />
+            <span className="font-semibold text-[11px]">Word (.docx)</span>
           </button>
 
           <button
             type="button"
             onClick={handlePdfExport}
             disabled={exportingPdf}
-            className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 bg-white hover:border-red-500 hover:bg-slate-50 transition-all font-medium text-xs shadow-2xs group"
+            className="flex flex-col items-center justify-center p-2 rounded-lg border border-slate-200 bg-white hover:border-red-400 hover:bg-slate-50 transition-all text-slate-800 shadow-2xs text-center"
+            title="PDF dokument"
           >
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 bg-red-600 text-white rounded-lg group-hover:scale-105 transition-transform">
-                <FileDown className="w-4 h-4" />
-              </div>
-              <div className="text-left">
-                <div className="font-semibold text-slate-800">Stáhnout PDF soubor</div>
-                <div className="text-[11px] text-slate-500">Vizuální formátovaný PDF dokument</div>
-              </div>
-            </div>
-            {exportingPdf && <span className="text-xs text-red-600 animate-pulse">Generuji...</span>}
+            <FileDown className="w-4 h-4 text-red-600 mb-1" />
+            <span className="font-semibold text-[11px]">PDF soubor</span>
           </button>
         </div>
       </div>
 
       {/* Import Word .docx souboru */}
       <div>
-        <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
-          Import z Wordu
-        </label>
         <input
           ref={docxInputRef}
           type="file"
@@ -200,59 +177,59 @@ export const ExportPrintTab: React.FC<Props> = ({
         <button
           type="button"
           onClick={() => docxInputRef.current?.click()}
-          className="w-full flex items-center justify-center gap-2 p-2.5 rounded-lg border border-indigo-200 bg-indigo-50/70 hover:bg-indigo-100/70 text-indigo-900 text-xs font-medium transition-all shadow-2xs"
+          className="w-full flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-lg border border-indigo-200 bg-indigo-50/70 hover:bg-indigo-100/70 text-indigo-900 text-[11px] font-semibold transition-all shadow-2xs"
         >
-          <FileUp className="w-4 h-4 text-indigo-600" />
-          Otevřít a editovat soubor Word (.docx)...
+          <FileUp className="w-3.5 h-3.5 text-indigo-600" />
+          Importovat soubor Word (.docx)
         </button>
       </div>
 
-      {/* Další textové formáty */}
+      {/* Další textové formáty - Compact 3 column row */}
       <div>
-        <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
-          Další textové formáty
+        <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+          Rychlý export textu
         </label>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-1.5">
           <button
             type="button"
             onClick={() => exportToTxt(editor.getHTML(), title)}
-            className="flex flex-col items-center justify-center p-2.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition-colors shadow-2xs"
+            className="flex items-center justify-center gap-1 py-1.5 px-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition-colors shadow-2xs text-[11px] font-medium"
           >
-            <FileText className="w-4 h-4 text-slate-600 mb-1" />
-            <span className="text-xs font-medium">Text (.txt)</span>
+            <FileText className="w-3.5 h-3.5 text-slate-500" />
+            <span>.txt</span>
           </button>
           <button
             type="button"
             onClick={() => exportToHtml(editor.getHTML(), title, pageSettings)}
-            className="flex flex-col items-center justify-center p-2.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition-colors shadow-2xs"
+            className="flex items-center justify-center gap-1 py-1.5 px-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition-colors shadow-2xs text-[11px] font-medium"
           >
-            <Code className="w-4 h-4 text-emerald-600 mb-1" />
-            <span className="text-xs font-medium">HTML (.html)</span>
+            <Code className="w-3.5 h-3.5 text-emerald-600" />
+            <span>.html</span>
           </button>
           <button
             type="button"
             onClick={() => exportToMarkdown(editor.getHTML(), title)}
-            className="flex flex-col items-center justify-center p-2.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition-colors shadow-2xs"
+            className="flex items-center justify-center gap-1 py-1.5 px-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition-colors shadow-2xs text-[11px] font-medium"
           >
-            <FileText className="w-4 h-4 text-indigo-600 mb-1" />
-            <span className="text-xs font-medium">Markdown</span>
+            <FileText className="w-3.5 h-3.5 text-indigo-600" />
+            <span>.md</span>
           </button>
         </div>
       </div>
 
       {/* Uložení / Otevření projektu MyWords */}
-      <div>
-        <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
-          Projektový soubor MyWords
+      <div className="pt-1">
+        <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+          Projektový soubor
         </label>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-1.5">
           <button
             type="button"
             onClick={handleSaveProject}
-            className="flex items-center justify-center gap-1.5 p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium transition-colors shadow-2xs"
+            className="flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-[11px] font-medium transition-colors shadow-2xs"
           >
             <Save className="w-3.5 h-3.5 text-blue-600" />
-            Uložit projekt (.mywords)
+            Uložit (.mywords)
           </button>
           <input
             ref={fileInputRef}
@@ -264,7 +241,7 @@ export const ExportPrintTab: React.FC<Props> = ({
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="flex items-center justify-center gap-1.5 p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium transition-colors shadow-2xs"
+            className="flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-[11px] font-medium transition-colors shadow-2xs"
           >
             <FolderOpen className="w-3.5 h-3.5 text-amber-600" />
             Otevřít projekt...
@@ -273,26 +250,42 @@ export const ExportPrintTab: React.FC<Props> = ({
       </div>
 
       {/* Vzorové šablony */}
-      <div>
-        <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+      <div className="pt-1 border-t border-slate-200">
+        <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1">
           <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-          Rychlé vzory & Šablony
+          Vzory dokumentů
         </label>
-        <div className="space-y-1.5">
+        <div className="grid grid-cols-1 gap-1.5">
           {SAMPLE_TEMPLATES.map((tpl) => (
-            <button
+            <div
               key={tpl.id}
-              type="button"
-              onClick={() => {
-                if (window.confirm(`Chcete načíst šablonu "${tpl.name}"? Neuložené změny v aktuálním dokumentu budou přepsány.`)) {
-                  onLoadTemplate(tpl.content, tpl.name);
-                }
-              }}
-              className="w-full text-left p-2.5 rounded-lg border border-slate-200 bg-white hover:border-blue-400 hover:bg-blue-50/30 transition-all text-xs"
+              className="p-2 rounded-lg border border-slate-200 bg-white hover:border-blue-300 transition-all text-xs flex flex-col gap-1.5 group"
             >
-              <div className="font-semibold text-slate-800">{tpl.name}</div>
-              <div className="text-[11px] text-slate-500 line-clamp-1">{tpl.description}</div>
-            </button>
+              <div>
+                <div className="font-semibold text-slate-800 text-[11px]">{tpl.name}</div>
+                <div className="text-[10px] text-slate-400 line-clamp-1">{tpl.description}</div>
+              </div>
+              <div className="flex items-center gap-1.5 pt-1 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => onLoadTemplate(tpl.content, tpl.name, true)}
+                  className="px-2 py-0.5 text-[10px] font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded transition-colors"
+                >
+                  + Otevřít jako nový projekt
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (window.confirm(`Chcete načíst šablonu "${tpl.name}" do aktuálního projektu? Neuložené změny budou přepsány.`)) {
+                      onLoadTemplate(tpl.content, tpl.name, false);
+                    }
+                  }}
+                  className="px-2 py-0.5 text-[10px] text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded transition-colors"
+                >
+                  Přepsat aktuální
+                </button>
+              </div>
+            </div>
           ))}
         </div>
       </div>

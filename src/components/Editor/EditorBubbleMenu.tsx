@@ -66,8 +66,13 @@ export const EditorBubbleMenu: React.FC<Props> = ({ editor }) => {
       }, 200);
     });
 
+    window.addEventListener('resize', updatePosition);
+    window.addEventListener('scroll', updatePosition, true);
+
     return () => {
       editor.off('selectionUpdate', updatePosition);
+      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', updatePosition, true);
     };
   }, [editor]);
 

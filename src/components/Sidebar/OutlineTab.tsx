@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Editor } from '@tiptap/react';
 import type { OutlineItem } from '../../types/editor';
-import { ListTree, BookOpen, ChevronRight, Hash } from 'lucide-react';
+import { ListTree, ChevronRight, Hash } from 'lucide-react';
 
 interface Props {
   editor: Editor | null;
@@ -78,45 +78,41 @@ export const OutlineTab: React.FC<Props> = ({ editor }) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3.5 text-xs">
       {/* Table of contents actions */}
       <div>
-        <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-          <BookOpen className="w-3.5 h-3.5 text-blue-600" />
-          Automatický obsah
-        </label>
         <button
           type="button"
           onClick={handleInsertTOC}
-          className="w-full flex items-center justify-center gap-2 p-2.5 rounded-lg border border-blue-200 bg-blue-50/70 hover:bg-blue-100/70 text-blue-800 text-xs font-medium transition-all shadow-2xs"
+          className="w-full flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-lg border border-blue-200 bg-blue-50/70 hover:bg-blue-100/70 text-blue-800 text-xs font-semibold transition-all shadow-2xs"
         >
-          <ListTree className="w-4 h-4 text-blue-600" />
+          <ListTree className="w-3.5 h-3.5 text-blue-600" />
           Vložit generovaný obsah do textu
         </button>
       </div>
 
       {/* Headings navigation list */}
       <div>
-        <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 flex items-center justify-between">
-          <span className="flex items-center gap-1.5">
-            <Hash className="w-3.5 h-3.5 text-blue-600" />
-            Navigátor kapitol ({headings.length})
+        <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1 flex items-center justify-between">
+          <span className="flex items-center gap-1">
+            <Hash className="w-3 h-3 text-slate-400" />
+            Struktura kapitol ({headings.length})
           </span>
-        </label>
+        </div>
 
         {headings.length === 0 ? (
-          <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-center text-xs text-slate-500">
-            Dokument zatím neobsahuje žádné nadpisy (H1, H2, H3). Přidejte nadpis v záložce Formátování.
+          <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-center text-[11px] text-slate-400">
+            Dokument zatím nemá nadpisy (H1, H2, H3).
           </div>
         ) : (
-          <div className="space-y-1 max-h-[460px] overflow-y-auto pr-1">
+          <div className="space-y-0.5 max-h-[500px] overflow-y-auto pr-1">
             {headings.map((h, i) => (
               <button
                 key={`${h.id}-${i}`}
                 type="button"
                 onClick={() => scrollToHeading(h.pos)}
-                style={{ paddingLeft: `${(h.level - 1) * 12 + 8}px` }}
-                className={`w-full text-left py-1.5 pr-2 rounded-lg text-xs hover:bg-blue-50/60 hover:text-blue-700 flex items-center gap-1.5 transition-colors group ${
+                style={{ paddingLeft: `${(h.level - 1) * 10 + 6}px` }}
+                className={`w-full text-left py-1 pr-2 rounded text-[11px] hover:bg-blue-50 hover:text-blue-700 flex items-center gap-1 transition-colors group ${
                   h.level === 1
                     ? 'font-semibold text-slate-800'
                     : h.level === 2

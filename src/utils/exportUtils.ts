@@ -2,6 +2,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { saveAs } from 'file-saver';
 import type { PageSettings } from '../types/editor';
+import { getFormatDimensions } from './formatConfig';
 
 export function triggerPrint() {
   window.print();
@@ -21,13 +22,13 @@ export async function exportToPdf(
   });
 
   const isLandscape = pageSettings.orientation === 'landscape';
-  const format = pageSettings.format.toLowerCase();
+  const { widthMm, heightMm } = getFormatDimensions(pageSettings.format, pageSettings.orientation);
 
-  // Create jsPDF document
+  // Create jsPDF document with exact dimensions
   const pdf = new jsPDF({
     orientation: isLandscape ? 'landscape' : 'portrait',
     unit: 'mm',
-    format: format === 'letter' ? 'letter' : format === 'legal' ? 'legal' : 'a4',
+    format: [widthMm, heightMm],
   });
 
   const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -69,6 +70,7 @@ export function exportToHtml(
   title: string,
   pageSettings: PageSettings
 ) {
+  const { widthMm } = getFormatDimensions(pageSettings.format, pageSettings.orientation);
   const fullHtml = `<!DOCTYPE html>
 <html lang="cs">
 <head>
@@ -78,7 +80,7 @@ export function exportToHtml(
     body {
       font-family: system-ui, -apple-system, sans-serif;
       line-height: 1.6;
-      max-width: ${pageSettings.orientation === 'landscape' ? '297mm' : '210mm'};
+      max-width: ${widthMm}mm;
       margin: 0 auto;
       padding: ${pageSettings.margins.top}mm ${pageSettings.margins.right}mm ${pageSettings.margins.bottom}mm ${pageSettings.margins.left}mm;
       background-color: ${pageSettings.paperColor};

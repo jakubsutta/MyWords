@@ -16,6 +16,7 @@ import {
 } from 'docx';
 import { saveAs } from 'file-saver';
 import type { PageSettings, HeaderFooterSettings } from '../types/editor';
+import { getFormatDimensions } from './formatConfig';
 
 // Helper to convert mm to twips (1 mm = 56.7 twips, 1 inch = 1440 twips = 25.4 mm)
 const mmToTwips = (mm: number) => Math.round(mm * 56.6929);
@@ -76,11 +77,21 @@ export async function exportToDocx(
         else if (style.includes('text-align: right')) alignment = AlignmentType.RIGHT;
         else if (style.includes('text-align: justify')) alignment = AlignmentType.JUSTIFIED;
 
+        // Parse custom line height
+        let lineSpacing = 276; // Default 1.15 line spacing (240 * 1.15)
+        const lhMatch = style.match(/line-height:\s*([\d.]+)/);
+        if (lhMatch) {
+          const parsedLh = parseFloat(lhMatch[1]);
+          if (!isNaN(parsedLh)) {
+            lineSpacing = Math.round(parsedLh * 240);
+          }
+        }
+
         results.push(
           new Paragraph({
             children: textRuns.length > 0 ? textRuns : [new TextRun('')],
             alignment,
-            spacing: { after: 140, line: 276 }, // 1.15 line spacing
+            spacing: { after: 140, line: lineSpacing },
           })
         );
       } else if (tag === 'blockquote') {
@@ -319,10 +330,9 @@ export async function exportToDocx(
               gutter: pageSettings.gutter ? mmToTwips(pageSettings.gutter) : undefined,
             },
             size: {
-              orientation:
-                pageSettings.orientation === 'landscape'
-                  ? (pageSettings.format === 'A4' ? { width: mmToTwips(297), height: mmToTwips(210) } : undefined) as any
-                  : undefined,
+              width: mmToTwips(getFormatDimensions(pageSettings.format, pageSettings.orientation).widthMm),
+              height: mmToTwips(getFormatDimensions(pageSettings.format, pageSettings.orientation).heightMm),
+              orientation: (pageSettings.orientation === 'landscape' ? 'landscape' : 'portrait') as any,
             },
           },
         },

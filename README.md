@@ -1,70 +1,120 @@
 # MyWords — Profesionální webový textový editor
 
-Moderní, lehká a výkonná obdoba textových procesorů Microsoft Word, Apple Pages a LibreOffice Writer, vytvořená pro webové prostředí.
+![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+![React](https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS_v4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite_8-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)
 
-## 🚀 Klíčové funkce
+**MyWords** je moderní, plně responzivní a bleskově rychlý webový textový editor inspirovaný nástroji jako *Microsoft Word*, *Apple Pages* a *LibreOffice Writer*. Běží kompletně v prohlížeči, bez nutnosti instalace či přihlašování, s plnou podporou práce offline a okamžitou automatickou synchronizací v `localStorage`.
 
-### 1. Levý panel s kompletním nastavením v logických záložkách
-- **Formátování (Text & Odstavce):**
-  - Výběr rodiny písma (Inter, Roboto, Montserrat, Merriweather, Playfair Display, EB Garamond, Lora, JetBrains Mono, Fira Code, Arial, Georgia, Times New Roman).
-  - Styly odstavce a nadpisy (Normální text, Nadpis 1, Nadpis 2, Nadpis 3).
-  - Řez písma: Tučné, Kurzíva, Podtržené, Přeškrtnuté, Dolní index, Horní index.
-  - Vzorník barev textu a zvýrazňovač s paletou.
-  - Zarovnání: Vlevo, Na střed, Vpravo, Do bloku (Justify).
-  - Seznamy s odrážkami, číslované seznamy, blokové citace, blok kódu.
-  - Tlačítko pro vymazání formátování.
-- **Vložit:**
-  - **Tabulky:** Vložení mřížky přes interaktivní volič (až 8×8) nebo zadáním rozměrů, kontextové nástroje (přidat/odebrat řádky a sloupce, přepnout záhlaví, smazat tabulku).
-  - **Obrázky:** Nahrání souboru ze zařízení (automatický převod na DataURL) nebo zadání webové adresy URL, náhled, alternativní text.
-  - **Symboly a speciální znaky:** Typografické uvozovky a pomlčky („ “, —, ©, ®), měny (€, $, £, Kč, ¥), matematické znaky (±, ×, ÷, ≠, ≤, ≥, √, ∞, π), šipky a emojis.
-  - **Oddělovače a datum:** Vodorovná oddělovací čára, aktuální české datum, zalomení stránky (Page break).
-  - **Odkazy:** Vložení a editace hypertextových odkazů.
-- **Stránka & Rozvržení:**
-  - Formát stránky: A4 (210 × 297 mm), A5 (148 × 210 mm), Letter, Legal.
-  - Orientace listu: Na výšku (Portrét) / Na šířku (Krajina).
-  - Předvolby okrajů: Normální (25 mm), Úzké (12.7 mm), Široké (35 mm) a vlastní rozměry v mm.
-  - Barva papíru: Čistě bílá, Slonová kost, Jemně šedá, Pergamen, Modravá.
-  - Vodorovné pravítko s milimetrovými značkami a vyznačením okrajů.
-- **Záhlaví & Zápatí:**
-  - Zapnutí/vypnutí záhlaví s vlastním textem a zarovnáním.
-  - Zapnutí/vypnutí zápatí s vlastním textem a zarovnáním.
-  - Stránkování: Bez číslování, Jednoduché („Strana 1“), Plné („Strana 1 z 1“), Odrážkové („— 1 —“).
-  - Volba pozice číslování: Vlevo, Na střed, Vpravo.
-- **Export & Tisk:**
-  - **Export do DOCX:** Generování nativního Microsoft Word souboru (`.docx`) kompatibilního s MS Word, Apple Pages i LibreOffice.
-  - **Export do PDF:** Vizuální PDF soubor ke stažení.
-  - **Tisk:** Přímý dialog tisku s čistými `@media print` pravidly (skryje všechny panely a ovládací prvky, vytiskne pouze čistou stránku s přesnými okraji).
-  - **Text (.txt), HTML (.html), Markdown (.md):** Okamžitý export do různých formátů.
-  - **Uložení / Otevření projektu (.mywords):** Uložení stavu dokumentu včetně nastavení okrajů, záhlaví a papíru.
-  - **Předpřipravené šablony:** Úřední dopis, Zpráva o stavu projektu, Profesionální životopis (CV), Prázdný list.
-- **Statistika & Nástroje:**
-  - Živý počet slov, znaků (s mezerami i bez), počet odstavců.
-  - Odhadovaná doba čtení.
-  - Hledat a nahradit (Find & Replace).
-  - Historie změn Zpět (Undo) a Znovu (Redo).
-  - Přehled klávesových zkratek.
+---
 
-### 2. Horní lišta & Rychlé ovládání
-- Přejmenování dokumentu kliknutím na název.
-- Rychlé přepínání zvětšení (Zoom 50 % až 160 %).
-- Přepínač režimu zobrazení: **Režim stránek (A4)** vs. **Plynulý režim**.
-- Rychlé tlačítko pro stažení DOCX a okamžitý tisk.
-- Automatické ukládání do lokálního úložiště prohlížeče (`localStorage`).
+## ✨ Hlavní funkce
 
-### 3. Plovoucí kontextové menu (Bubble Menu)
-- Při označení libovolného textu se přímo nad výběrem zobrazí rychlá lišta pro formátování (tučné, kurzíva, podtržení, přeškrtnutí, zvýrazňovač, odkaz).
+### 📂 Správa projektů (Záložky projektů)
+- Práce s více dokumenty současně v podobě záložek.
+- **Drag & drop přetahování** pro snadnou změnu pořadí záložek.
+- Rychlé přejmenování (dvojklikem nebo přes kontextové menu).
+- Duplikace projektu a export/import do souboru `.mywords` (JSON).
+- Rychlé přepínání klávesovými zkratkami `Ctrl+Alt+→` / `Ctrl+Alt+←`.
 
-## 🛠 Spuštění projektu
+### 📄 Rozvržení stránky & Tisková příprava
+- **Předvolby formátů:** A4, A5, B5, Letter, Legal, Executive, Kniha / Příručka (135 × 205 mm, 140 × 205 mm). Všechny rozměry standardizovány v cm/mm.
+- **Režimy zobrazení:**
+  - *Stránkový náhled (Page view)* s interaktivním dělením na stránky.
+  - *Dvojstránka (Kniha / Knižní vazba)* pro rozvržení levé a pravé stránky se zrcadlovými okraji a hřbetem (Gutter).
+  - *Plynulý režim (Continuous)* bez okrajů pro nerušené psaní.
+- Vizuální zobrazení okrajů a hřbetu s jemným barevným tónováním.
+- Volba barvy a textury papíru (bílá, slonová kost, recyklovaný papír, jemná modř atd.).
+- Interaktivní pravítko s milimetrovými značkami.
 
+### ✍️ Bohaté formátování textu
+- Široký výběr typografických fontů: *Inter, Roboto, Montserrat, Segoe UI, Georgia, Arial, Times New Roman, Playfair Display, EB Garamond, Lora, JetBrains Mono, Fira Code*.
+- Odstavcové styly (Nadpis 1–3, normální text, blokové citace, blok kódu).
+- **Nastavitelné řádkování odstavců** (1.0, 1.15, 1.5, 1.75, 2.0).
+- Zvýrazňování textu a vzorník barev s hex paletou.
+- Odrážkové i číslované seznamy, zarovnání textu (vlevo, na střed, vpravo, do bloku).
+- Plovoucí bublinové menu (Bubble Menu) přímo nad vybraným textem.
+
+### 🖼️ Interaktivní objekty & Média
+- **Libovolná změna velikosti objektů (Resize handles):** Chycením rohů či stran můžete snadno zmenšovat/zvětšovat vložené obrázky a grafy s live přepočtem rozměrů v centimetrech (cm).
+- **Vkládání grafů (SVG):** Sloupcové (Bar), spojnicové (Line), koláčové (Pie) a prstencové (Doughnut) grafy s možností editace hodnot přímo v dialogu.
+- **Tabulky:** Vizuální volič rozměrů, přidávání/mazání řádků a sloupců, záhlaví.
+- **Typografické symboly a měny:** České uvozovky („ “), pomlčky (—, –), symboly měn (€, $, Kč, £, ¥), matematické operátory (±, ×, ÷, ≠, ≤, ≥, ∑, √, ∞, π) a emotikony.
+
+### 📑 Záhlaví, zápatí & Číslování stránek
+- Vlastní texty pro záhlaví a zápatí.
+- Samostatné nastavení pro liché a sudé stránky.
+- Automatické číslování stran s výběrem stylu (*Strana X*, *Strana X z Y*, *— X —*).
+
+### 💾 Export & Import
+- **DOCX:** Generování nativního `.docx` souboru pro Microsoft Word a LibreOffice.
+- **PDF:** Export do formátu PDF.
+- **Tisk:** Perfektně vyladěný CSS tisk (`@media print`) s přesnými fyzickými rozměry a skrytím všech nástrojových lišt.
+- **Text, HTML, Markdown:** Export čistého textu nebo strukturovaného kódu.
+- **.mywords:** Kompletní záloha projektu včetně nastavení geometrie stránek.
+
+---
+
+## 🛠️ Použité technologie
+
+- **Frontend framework:** [React 19](https://react.dev/)
+- **Build nástroj:** [Vite 8](https://vite.dev/)
+- **Typový systém:** [TypeScript](https://www.typescriptlang.org/)
+- **Editor jádro:** [TipTap](https://tiptap.dev/) & [ProseMirror](https://prosemirror.net/)
+- **Styling:** [Tailwind CSS v4](https://tailwindcss.com/)
+- **Ikony:** [Lucide React](https://lucide.dev/)
+- **DOCX generátor:** [docx](https://docx.js.org/)
+- **Linter & Code quality:** [oxlint](https://oxc-project.github.io/)
+
+---
+
+## 🚀 Spuštění a instalace
+
+### Požadavky
+- [Node.js](https://nodejs.org/) verze 18 nebo vyšší
+- Správce balíčků `npm` nebo `pnpm`
+
+### Lokální vývoj
 ```bash
-# Instalace závislostí (již provedeno)
+# 1. Klonování repozitáře
+git clone https://github.com/vase-jmeno/MyWords.git
+cd MyWords
+
+# 2. Instalace závislostí
 npm install
 
-# Spuštění vývojového serveru
+# 3. Spuštění lokálního vývojového serveru
 npm run dev
+```
+Aplikace poběží na adrese `http://localhost:5173/`.
 
-# Sestavení produkčního balíčku
+### Produkční sestavení (Build)
+```bash
 npm run build
 ```
+Výsledné optimalizované statické soubory budou uloženy ve složce `dist/`, odkud je lze nasadit na libovolný statický hosting (GitHub Pages, Vercel, Netlify, Cloudflare Pages).
 
-Vývojový server běží na: `http://localhost:5173/`
+### Kontrola kvality kódu (Linter)
+```bash
+npm run lint
+```
+
+---
+
+## 🌐 Nasazení na GitHub Pages (Doporučený postup)
+
+V souboru `vite.config.ts` nastavte `base`:
+```ts
+export default defineConfig({
+  base: '/MyWords/', // název vašeho repozitáře na GitHubu
+  plugins: [react(), tailwindcss()],
+})
+```
+Následně můžete využít GitHub Actions pro automatický deployment větve `main` do GitHub Pages.
+
+---
+
+## 📄 Licence
+Tento projekt je licencován pod licencí [MIT](LICENSE).
