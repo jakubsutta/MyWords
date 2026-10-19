@@ -18,6 +18,7 @@ import Placeholder from '@tiptap/extension-placeholder';
 
 import { FontSize } from './extensions/FontSize';
 import { LineHeight } from './extensions/LineHeight';
+import { PageBreak } from './extensions/PageBreak';
 
 import type {
   PageSettings,
@@ -39,6 +40,7 @@ import { InsertImageModal } from './components/Modals/InsertImageModal';
 import { InsertChartModal } from './components/Modals/InsertChartModal';
 import { SymbolsModal } from './components/Modals/SymbolsModal';
 import { FindReplaceModal } from './components/Modals/FindReplaceModal';
+import { DocumentPreviewModal } from './components/Modals/DocumentPreviewModal';
 
 const STORAGE_KEY_PROJECTS = 'mywords_projects';
 const STORAGE_KEY_ACTIVE_PROJECT_ID = 'mywords_active_project_id';
@@ -166,6 +168,7 @@ export const App: React.FC = () => {
   const [isChartModalOpen, setIsChartModalOpen] = useState(false);
   const [isSymbolsModalOpen, setIsSymbolsModalOpen] = useState(false);
   const [isFindReplaceOpen, setIsFindReplaceOpen] = useState(false);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
 
   // Document Stats
   const [stats, setStats] = useState<DocumentStats>({
@@ -205,6 +208,7 @@ export const App: React.FC = () => {
       TableRow,
       TableHeader,
       TableCell,
+      PageBreak,
       Placeholder.configure({
         placeholder: 'Začněte psát svůj profesionální dokument v MyWords...',
       }),
@@ -549,6 +553,9 @@ export const App: React.FC = () => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
         e.preventDefault();
         setIsFindReplaceOpen(true);
+      } else if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'p') {
+        e.preventDefault();
+        setIsPreviewModalOpen((prev) => !prev);
       } else if ((e.ctrlKey || e.metaKey) && (e.key === '\\' || e.key === '|')) {
         e.preventDefault();
         setIsSidebarOpen((prev) => !prev);
@@ -678,6 +685,7 @@ export const App: React.FC = () => {
         isSidebarOpen={isSidebarOpen}
         onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
         onFitToWidth={handleFitToWidth}
+        onOpenPreview={() => setIsPreviewModalOpen(true)}
       />
 
       {/* Project Tabs Bar (Záložky projektů) */}
@@ -733,6 +741,7 @@ export const App: React.FC = () => {
             pageRef={pageRef}
             viewportRef={viewportRef}
             onPageCountChange={setPageCount}
+            onOpenPreview={() => setIsPreviewModalOpen(true)}
           />
           {/* Status Bar at the bottom */}
           <EditorStatusBar
@@ -775,6 +784,14 @@ export const App: React.FC = () => {
         isOpen={isFindReplaceOpen}
         onClose={() => setIsFindReplaceOpen(false)}
         editor={editor}
+      />
+      <DocumentPreviewModal
+        isOpen={isPreviewModalOpen}
+        onClose={() => setIsPreviewModalOpen(false)}
+        title={title}
+        htmlContent={editor ? editor.getHTML() : activeProject.content}
+        pageSettings={pageSettings}
+        headerFooterSettings={headerFooterSettings}
       />
     </div>
   );

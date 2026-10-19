@@ -13,6 +13,7 @@ import {
   Header,
   Footer,
   PageNumber,
+  PageBreak,
 } from 'docx';
 import { saveAs } from 'file-saver';
 import type { PageSettings, HeaderFooterSettings } from '../types/editor';
@@ -40,6 +41,22 @@ export async function exportToDocx(
     if (node.nodeType === Node.ELEMENT_NODE) {
       const el = node as HTMLElement;
       const tag = el.tagName.toLowerCase();
+
+      // Page Break
+      if (
+        el.getAttribute('data-page-break') === 'true' ||
+        el.getAttribute('data-type') === 'page-break' ||
+        el.classList.contains('mywords-page-break') ||
+        el.classList.contains('page-break-indicator') ||
+        tag === 'hr'
+      ) {
+        results.push(
+          new Paragraph({
+            children: [new PageBreak()],
+          })
+        );
+        return results;
+      }
 
       // Headings
       if (tag === 'h1') {

@@ -14,6 +14,7 @@ import {
   Eye,
   EyeOff,
   BookOpen,
+  Scissors,
 } from 'lucide-react';
 import { triggerPrint } from '../utils/exportUtils';
 import { exportToDocx } from '../utils/docxExport';
@@ -33,6 +34,7 @@ interface Props {
   isSidebarOpen: boolean;
   onToggleSidebar: () => void;
   onFitToWidth?: () => void;
+  onOpenPreview?: () => void;
 }
 
 export const Header: React.FC<Props> = ({
@@ -49,6 +51,7 @@ export const Header: React.FC<Props> = ({
   isSidebarOpen: _isSidebarOpen,
   onToggleSidebar: _onToggleSidebar,
   onFitToWidth: _onFitToWidth,
+  onOpenPreview,
 }) => {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [tempTitle, setTempTitle] = useState(title);
@@ -238,6 +241,30 @@ export const Header: React.FC<Props> = ({
               <EyeOff className="w-3.5 h-3.5 text-slate-400" />
             )}
             <span>Okraje</span>
+          </button>
+        )}
+
+        {/* Quick Page Break (Ctrl+Enter) */}
+        <button
+          type="button"
+          onClick={() => editor?.chain().focus().setPageBreak().run()}
+          className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-lg border border-slate-200/80 bg-white/80 text-slate-700 hover:text-blue-700 hover:border-blue-300 text-xs font-medium transition-colors shadow-2xs"
+          title="Vložit zalomení stránky (Ctrl+Enter / Cmd+Enter)"
+        >
+          <Scissors className="w-3.5 h-3.5 text-blue-600" />
+          <span className="hidden lg:inline">Zalomit stranu</span>
+        </button>
+
+        {/* Document Preview (Náhled bez vodítek a okrajů) */}
+        {onOpenPreview && (
+          <button
+            type="button"
+            onClick={onOpenPreview}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-indigo-200 bg-indigo-50/90 text-indigo-700 hover:bg-indigo-100 text-xs font-semibold transition-colors shadow-2xs"
+            title="Náhled výsledku bez vodítek a okrajů (čistý tiskový vzhled)"
+          >
+            <Eye className="w-3.5 h-3.5 text-indigo-600" />
+            <span>Náhled</span>
           </button>
         )}
 

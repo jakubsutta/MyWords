@@ -250,12 +250,60 @@ select.select-custom {
 }
 
 /* Page Break styling */
+.mywords-page-break {
+  display: block;
+  position: relative;
+  margin: 2rem 0;
+  padding: 0;
+  border-top: 2px dashed #93c5fd;
+  text-align: center;
+  user-select: none;
+  cursor: pointer;
+  page-break-after: always;
+  break-after: page;
+}
+
+.mywords-page-break:hover {
+  border-top-color: #3b82f6;
+}
+
+.mywords-page-break .page-break-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.65rem;
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 9999px;
+  transform: translateY(-50%);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10px;
+  color: #1d4ed8;
+  font-weight: 600;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  transition: all 0.15s ease;
+}
+
+.mywords-page-break:hover .page-break-badge {
+  background-color: #dbeafe;
+  border-color: #93c5fd;
+  box-shadow: 0 2px 4px 0 rgba(37, 99, 235, 0.12);
+}
+
+.mywords-page-break .page-break-hint {
+  font-size: 9px;
+  color: #60a5fa;
+  font-weight: normal;
+}
+
 .page-break-indicator {
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 1.5rem 0;
   user-select: none;
+  page-break-after: always;
+  break-after: page;
 }
 
 /* Print CSS: Pure document page, zero UI */

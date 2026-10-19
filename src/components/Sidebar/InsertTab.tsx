@@ -199,11 +199,16 @@ export const InsertTab: React.FC<Props> = ({
           </button>
           <button
             type="button"
-            onClick={() => editor.chain().focus().insertContent('<div style="page-break-after: always; height: 1px; border-bottom: 2px dashed #94a3b8; margin: 1.5rem 0; text-align: center; color: #94a3b8; font-size: 10px;">— Konec stránky —</div><p></p>').run()}
-            className="flex items-center gap-2 px-2.5 py-1.5 text-xs text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors shadow-2xs"
+            onClick={() => editor.chain().focus().setPageBreak().run()}
+            className="flex items-center justify-between px-2.5 py-2 text-xs font-medium text-blue-800 bg-blue-50/70 border border-blue-200/80 rounded-lg hover:bg-blue-100 transition-colors shadow-2xs group"
           >
-            <FileDown className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-            <span>Zalomení stránky (Page break)</span>
+            <div className="flex items-center gap-2">
+              <FileDown className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+              <span>Zalomení stránky</span>
+            </div>
+            <span className="text-[10px] font-mono text-blue-500 bg-white/90 border border-blue-200 px-1.5 py-0.5 rounded">
+              Ctrl+Enter
+            </span>
           </button>
         </div>
       </div>
