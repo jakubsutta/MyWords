@@ -611,6 +611,13 @@ export const App: React.FC = () => {
         handleTitleChange(newTitle);
       }
     }
+    setProjects((prev) =>
+      prev.map((p) =>
+        p.id === activeProjectIdRef.current
+          ? { ...p, content, title: newTitle || p.title, updatedAt: Date.now() }
+          : p
+      )
+    );
   };
 
   // Load Project JSON as a new Project Tab

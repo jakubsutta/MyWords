@@ -55,17 +55,21 @@ const HIGHLIGHT_COLORS = [
 export const TextFormatTab: React.FC<Props> = ({ editor }) => {
   // Re-render on TipTap state changes (selection, text changes, active formatting)
   const [, setTick] = useState(0);
-  const lastSelectionRef = useRef<{ from: number; to: number } | null>(null);
+  const dropdownSelectionRef = useRef<{ from: number; to: number } | null>(null);
   const domSelectionRangeRef = useRef<Range | null>(null);
+
+  const [activeColor, setActiveColor] = useState<string>('#000000');
+  const [activeFont, setActiveFont] = useState<string>(FONTS[0].value);
+  const [activeSize, setActiveSize] = useState<string>('11pt');
 
   useEffect(() => {
     if (!editor) return;
 
     const handleUpdate = () => {
-      const { from, to, empty } = editor.state.selection;
-      if (!empty) {
-        lastSelectionRef.current = { from, to };
-      }
+      const attrs = editor.getAttributes('textStyle');
+      if (attrs.color) setActiveColor(attrs.color);
+      if (attrs.fontFamily) setActiveFont(attrs.fontFamily);
+      if (attrs.fontSize) setActiveSize(attrs.fontSize);
       setTick((t) => (t + 1) % 1000000);
     };
 
@@ -94,19 +98,37 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
     };
   }, [editor]);
 
+  // Capture selection before focus leaves the editor for dropdowns or color input
+  const captureSelection = useCallback(() => {
+    if (!editor) return;
+    const { from, to, empty } = editor.state.selection;
+    if (!empty) {
+      dropdownSelectionRef.current = { from, to };
+    } else {
+      // If caret is inside a block, capture the entire block so formatting can apply to it
+      const $from = editor.state.selection.$from;
+      if ($from) {
+        dropdownSelectionRef.current = { from: $from.start(), to: $from.end() };
+      }
+    }
+  }, [editor]);
+
   // Execute chain while restoring selection if needed
   const executeChain = useCallback(
-    (fn: (chain: any) => any) => {
+    (fn: (chain: any) => any, forceSavedSelection = false) => {
       if (!editor) return;
       let chain = editor.chain().focus();
-      if (editor.state.selection.empty && lastSelectionRef.current) {
-        const { from, to } = lastSelectionRef.current;
+      
+      if (forceSavedSelection && dropdownSelectionRef.current) {
+        const { from, to } = dropdownSelectionRef.current;
         const docSize = editor.state.doc.content.size;
-        if (from <= docSize && to <= docSize && from !== to) {
+        if (from <= docSize && to <= docSize && from < to) {
           chain = chain.setTextSelection({ from, to });
         }
       }
+
       fn(chain).run();
+      dropdownSelectionRef.current = null;
     },
     [editor]
   );
@@ -166,7 +188,7 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
         if (handled) return;
       }
 
-      executeChain(fn);
+      executeChain(fn, false);
     },
   });
 
@@ -180,9 +202,9 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
     ? 'h3'
     : 'p';
 
-  const currentFontFamily = editor.getAttributes('textStyle').fontFamily || FONTS[0].value;
-  const currentFontSize = editor.getAttributes('textStyle').fontSize || '11pt';
-  const currentColor = editor.getAttributes('textStyle').color || '#000000';
+  const currentFontFamily = editor.getAttributes('textStyle').fontFamily || activeFont;
+  const currentFontSize = editor.getAttributes('textStyle').fontSize || activeSize;
+  const currentColor = editor.getAttributes('textStyle').color || activeColor;
 
   return (
     <div className="space-y-3.5 text-xs select-none">
@@ -191,24 +213,17 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
         <div className="flex items-center gap-1.5 mb-1">
           <select
             value={currentFontFamily}
-            onMouseDown={() => {
-              // Capture selection before focus leaves the editor
-              if (editor && !editor.state.selection.empty) {
-                lastSelectionRef.current = {
-                  from: editor.state.selection.from,
-                  to: editor.state.selection.to,
-                };
-              }
-            }}
+            onMouseDown={captureSelection}
             onChange={(e) => {
               const val = e.target.value;
+              setActiveFont(val);
               const handled = applySpreadDomFormatting((range) => {
                 const span = document.createElement('span');
                 span.style.fontFamily = val;
                 range.surroundContents(span);
               });
               if (!handled) {
-                executeChain((c) => c.setFontFamily(val));
+                executeChain((c) => c.setFontFamily(val), true);
               }
             }}
             className="select-custom flex-1 py-1.5 pl-2.5 bg-white border border-slate-200/90 hover:border-slate-300 rounded-lg shadow-2xs focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:outline-none text-xs font-medium cursor-pointer transition-all"
@@ -222,24 +237,17 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
 
           <select
             value={currentFontSize}
-            onMouseDown={() => {
-              // Capture selection before focus leaves the editor
-              if (editor && !editor.state.selection.empty) {
-                lastSelectionRef.current = {
-                  from: editor.state.selection.from,
-                  to: editor.state.selection.to,
-                };
-              }
-            }}
+            onMouseDown={captureSelection}
             onChange={(e) => {
               const val = e.target.value;
+              setActiveSize(val);
               const handled = applySpreadDomFormatting((range) => {
                 const span = document.createElement('span');
                 span.style.fontSize = val;
                 range.surroundContents(span);
               });
               if (!handled) {
-                executeChain((c) => c.setFontSize(val));
+                executeChain((c) => c.setFontSize(val), true);
               }
             }}
             className="select-custom w-22 py-1.5 pl-2 bg-white border border-slate-200/90 hover:border-slate-300 rounded-lg shadow-2xs focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:outline-none text-xs font-mono cursor-pointer transition-all"
@@ -478,10 +486,23 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
               <button
                 key={col}
                 type="button"
-                {...action((c) => c.setColor(col), { cmd: 'foreColor', value: col })}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  captureSelection();
+                }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setActiveColor(col);
+                  const handled = applySpreadDomFormatting(() => {
+                    document.execCommand('foreColor', false, col);
+                  });
+                  if (!handled) {
+                    executeChain((c) => c.setColor(col), true);
+                  }
+                }}
                 style={{ backgroundColor: col }}
                 className={`w-4 h-4 rounded-full border transition-transform ${
-                  currentColor === col ? 'ring-2 ring-blue-500 ring-offset-1 scale-110' : 'border-black/10 hover:scale-115'
+                  currentColor.toLowerCase() === col.toLowerCase() ? 'ring-2 ring-blue-500 ring-offset-1 scale-110' : 'border-black/10 hover:scale-115'
                 }`}
                 title={col}
               />
@@ -489,21 +510,15 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
             <input
               type="color"
               value={currentColor}
-              onMouseDown={() => {
-                if (editor && !editor.state.selection.empty) {
-                  lastSelectionRef.current = {
-                    from: editor.state.selection.from,
-                    to: editor.state.selection.to,
-                  };
-                }
-              }}
+              onMouseDown={captureSelection}
               onChange={(e) => {
                 const val = e.target.value;
+                setActiveColor(val);
                 const handled = applySpreadDomFormatting(() => {
                   document.execCommand('foreColor', false, val);
                 });
                 if (!handled) {
-                  executeChain((c) => c.setColor(val));
+                  executeChain((c) => c.setColor(val), true);
                 }
               }}
               className="w-4 h-4 rounded cursor-pointer border border-slate-300 ml-1"
@@ -522,7 +537,19 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
               <button
                 key={col}
                 type="button"
-                {...action((c) => c.setHighlight({ color: col }), { cmd: 'hiliteColor', value: col })}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  captureSelection();
+                }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  const handled = applySpreadDomFormatting(() => {
+                    document.execCommand('hiliteColor', false, col);
+                  });
+                  if (!handled) {
+                    executeChain((c) => c.setHighlight({ color: col }), true);
+                  }
+                }}
                 style={{ backgroundColor: col }}
                 className="w-4 h-4 rounded-sm border border-slate-300 hover:scale-115 transition-transform"
                 title={col}
@@ -530,7 +557,14 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
             ))}
             <button
               type="button"
-              {...action((c) => c.unsetHighlight())}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                captureSelection();
+              }}
+              onClick={(e) => {
+                e.preventDefault();
+                executeChain((c) => c.unsetHighlight(), true);
+              }}
               className="text-[10px] text-slate-400 hover:text-slate-700 ml-1 px-1 font-bold"
               title="Zrušit zvýraznění"
             >

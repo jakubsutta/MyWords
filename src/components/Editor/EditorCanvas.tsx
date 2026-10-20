@@ -286,7 +286,8 @@ export const EditorCanvas: React.FC<Props> = ({
       target.closest('input') ||
       target.closest('[data-drag-handle]') ||
       target.closest('.no-print') ||
-      target.closest('[contenteditable="false"]')
+      target.closest('[contenteditable="false"]') ||
+      target.closest('.ProseMirror')
     ) {
       return;
     }
@@ -813,8 +814,8 @@ export const EditorCanvas: React.FC<Props> = ({
                         <div
                           className={`absolute left-0 right-0 text-xs text-slate-400 select-none border-b border-dashed border-slate-200/80 flex items-center justify-between group cursor-pointer hover:bg-slate-50/60 transition-colors`}
                           style={{
-                            top: `${pageTopMm}mm`,
-                            height: `${pageSettings.margins.top * 0.8}mm`,
+                            top: `${pageTopMm + (pNum > 1 ? 4 : 0)}mm`,
+                            height: `${Math.max(8, pageSettings.margins.top * 0.75)}mm`,
                             paddingLeft: `${pageMargins.left}mm`,
                             paddingRight: `${pageMargins.right}mm`,
                           }}
@@ -851,8 +852,8 @@ export const EditorCanvas: React.FC<Props> = ({
                         <div
                           className="absolute left-0 right-0 text-xs text-slate-400 select-none border-t border-dashed border-slate-200/80 flex items-center justify-between group cursor-pointer hover:bg-slate-50/60 transition-colors"
                           style={{
-                            top: `${pageBottomMm - pageSettings.margins.bottom * 0.8}mm`,
-                            height: `${pageSettings.margins.bottom * 0.8}mm`,
+                            top: `${pageBottomMm - pageSettings.margins.bottom * 0.75 - 4}mm`,
+                            height: `${Math.max(8, pageSettings.margins.bottom * 0.75)}mm`,
                             paddingLeft: `${pageMargins.left}mm`,
                             paddingRight: `${pageMargins.right}mm`,
                           }}
@@ -886,11 +887,11 @@ export const EditorCanvas: React.FC<Props> = ({
                       {/* Page Break Gap / Sheet Divider (Between pages) */}
                       {pNum < totalPages && (
                         <div
-                          className="no-print absolute left-0 right-0 pointer-events-auto z-15 flex flex-col items-center group"
+                          className="no-print absolute left-0 right-0 pointer-events-auto z-15 flex items-center justify-center group"
                           style={{ top: `${pageBottomMm}mm`, transform: 'translateY(-50%)' }}
                         >
-                          <div className="w-[calc(100%+32px)] -mx-4 h-8 bg-slate-300/90 shadow-inner border-y border-slate-300 flex items-center justify-between px-4 transition-colors group-hover:bg-slate-300">
-                            <span className="bg-white/95 text-slate-600 font-mono text-[10px] px-2.5 py-0.5 rounded-full border border-slate-200 shadow-2xs font-semibold flex items-center gap-1.5 select-none">
+                          <div className="w-[calc(100%+32px)] -mx-4 h-0 border-b border-dashed border-slate-300 relative flex items-center justify-between px-4">
+                            <span className="bg-white text-slate-500 font-mono text-[9px] px-2.5 py-0.5 rounded-full border border-slate-200 shadow-2xs font-semibold flex items-center gap-1.5 select-none -my-2.5">
                               <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
                               Konec strany {pNum} {isBookMode ? (isEven ? '(Levá)' : '(Pravá)') : ''} ── Začátek strany {pNum + 1} ({widthCm} × {heightCm} cm)
                             </span>
@@ -901,7 +902,7 @@ export const EditorCanvas: React.FC<Props> = ({
                                 e.stopPropagation();
                                 handleInsertPageBreak();
                               }}
-                              className="opacity-0 group-hover:opacity-100 transition-opacity bg-blue-600 hover:bg-blue-700 text-white font-medium text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1 shadow-xs cursor-pointer"
+                              className="opacity-0 group-hover:opacity-100 transition-opacity bg-blue-600 hover:bg-blue-700 text-white font-medium text-[9px] px-2 py-0.5 rounded-full flex items-center gap-1 shadow-xs cursor-pointer -my-2"
                               title="Vložit zalomení stránky na pozici kurzoru (Ctrl+Enter)"
                             >
                               <Scissors className="w-3 h-3" />
