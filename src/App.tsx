@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
 import { TextStyle } from '@tiptap/extension-text-style';
 import Color from '@tiptap/extension-color';
@@ -185,7 +184,6 @@ export const App: React.FC = () => {
       StarterKit.configure({
         heading: { levels: [1, 2, 3] },
       }),
-      Underline,
       TextAlign.configure({
         types: ['heading', 'paragraph'],
       }),

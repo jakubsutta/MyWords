@@ -56,6 +56,7 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
   // Re-render on TipTap state changes (selection, text changes, active formatting)
   const [, setTick] = useState(0);
   const lastSelectionRef = useRef<{ from: number; to: number } | null>(null);
+  const domSelectionRangeRef = useRef<Range | null>(null);
 
   useEffect(() => {
     if (!editor) return;
@@ -71,9 +72,25 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
     editor.on('transaction', handleUpdate);
     editor.on('selectionUpdate', handleUpdate);
 
+    // Also track DOM selections inside contentEditable (such as spread view)
+    const handleDocSelectionChange = () => {
+      const sel = window.getSelection();
+      if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
+        const range = sel.getRangeAt(0);
+        const node = sel.anchorNode;
+        const ce = node?.parentElement?.closest('[contenteditable="true"]');
+        if (ce) {
+          domSelectionRangeRef.current = range.cloneRange();
+        }
+      }
+    };
+
+    document.addEventListener('selectionchange', handleDocSelectionChange);
+
     return () => {
       editor.off('transaction', handleUpdate);
       editor.off('selectionUpdate', handleUpdate);
+      document.removeEventListener('selectionchange', handleDocSelectionChange);
     };
   }, [editor]);
 
@@ -94,6 +111,41 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
     [editor]
   );
 
+  // Apply formatting to DOM selection in spread view (contenteditable)
+  const applySpreadDomFormatting = useCallback((modifier: (range: Range) => void) => {
+    const sel = window.getSelection();
+    let range: Range | null = null;
+    if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
+      range = sel.getRangeAt(0);
+    } else if (domSelectionRangeRef.current) {
+      range = domSelectionRangeRef.current;
+    }
+
+    if (!range) return false;
+
+    const startNode = range.startContainer;
+    const ce = startNode?.parentElement?.closest('[contenteditable="true"]') as HTMLElement | null;
+    if (!ce || (editor && editor.view.dom.contains(ce))) {
+      return false;
+    }
+
+    try {
+      if (sel) {
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+      modifier(range);
+      ce.dispatchEvent(new Event('input', { bubbles: true }));
+      // blur & sync to tiptap if needed
+      ce.blur();
+      ce.focus();
+      return true;
+    } catch (e) {
+      console.error('Spread DOM formatting error:', e);
+      return false;
+    }
+  }, [editor]);
+
   // Helper to create button handlers that prevent blur on mousedown and execute command
   const action = (
     fn: (chain: any) => any,
@@ -107,19 +159,11 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
       if (!editor) return;
 
       // Fallback: If user selected text in a contenteditable outside of TipTap (e.g. spread view)
-      const sel = window.getSelection();
-      if (
-        domFallback &&
-        sel &&
-        !sel.isCollapsed &&
-        !editor.view.dom.contains(sel.anchorNode)
-      ) {
-        try {
+      if (domFallback) {
+        const handled = applySpreadDomFormatting(() => {
           document.execCommand(domFallback.cmd, false, domFallback.value);
-          const el = sel.anchorNode?.parentElement?.closest('[contenteditable="true"]');
-          if (el) el.dispatchEvent(new Event('input', { bubbles: true }));
-          return;
-        } catch {}
+        });
+        if (handled) return;
       }
 
       executeChain(fn);
@@ -147,9 +191,25 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
         <div className="flex items-center gap-1.5 mb-1">
           <select
             value={currentFontFamily}
+            onMouseDown={() => {
+              // Capture selection before focus leaves the editor
+              if (editor && !editor.state.selection.empty) {
+                lastSelectionRef.current = {
+                  from: editor.state.selection.from,
+                  to: editor.state.selection.to,
+                };
+              }
+            }}
             onChange={(e) => {
               const val = e.target.value;
-              executeChain((c) => c.setFontFamily(val));
+              const handled = applySpreadDomFormatting((range) => {
+                const span = document.createElement('span');
+                span.style.fontFamily = val;
+                range.surroundContents(span);
+              });
+              if (!handled) {
+                executeChain((c) => c.setFontFamily(val));
+              }
             }}
             className="select-custom flex-1 py-1.5 pl-2.5 bg-white border border-slate-200/90 hover:border-slate-300 rounded-lg shadow-2xs focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:outline-none text-xs font-medium cursor-pointer transition-all"
           >
@@ -162,9 +222,25 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
 
           <select
             value={currentFontSize}
+            onMouseDown={() => {
+              // Capture selection before focus leaves the editor
+              if (editor && !editor.state.selection.empty) {
+                lastSelectionRef.current = {
+                  from: editor.state.selection.from,
+                  to: editor.state.selection.to,
+                };
+              }
+            }}
             onChange={(e) => {
               const val = e.target.value;
-              executeChain((c) => c.setFontSize(val));
+              const handled = applySpreadDomFormatting((range) => {
+                const span = document.createElement('span');
+                span.style.fontSize = val;
+                range.surroundContents(span);
+              });
+              if (!handled) {
+                executeChain((c) => c.setFontSize(val));
+              }
             }}
             className="select-custom w-22 py-1.5 pl-2 bg-white border border-slate-200/90 hover:border-slate-300 rounded-lg shadow-2xs focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:outline-none text-xs font-mono cursor-pointer transition-all"
             title="Velikost písma"
@@ -413,9 +489,22 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
             <input
               type="color"
               value={currentColor}
+              onMouseDown={() => {
+                if (editor && !editor.state.selection.empty) {
+                  lastSelectionRef.current = {
+                    from: editor.state.selection.from,
+                    to: editor.state.selection.to,
+                  };
+                }
+              }}
               onChange={(e) => {
                 const val = e.target.value;
-                executeChain((c) => c.setColor(val));
+                const handled = applySpreadDomFormatting(() => {
+                  document.execCommand('foreColor', false, val);
+                });
+                if (!handled) {
+                  executeChain((c) => c.setColor(val));
+                }
               }}
               className="w-4 h-4 rounded cursor-pointer border border-slate-300 ml-1"
               title="Vlastní barva"
