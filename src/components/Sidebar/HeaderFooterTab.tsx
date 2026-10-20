@@ -68,22 +68,27 @@ export const HeaderFooterTab: React.FC<Props> = ({ settings, onChange }) => {
             <div className="flex items-center gap-1 pt-0.5">
               <span className="text-[10px] text-slate-400 mr-1 font-medium">Zarovnání:</span>
               <div className="flex items-center gap-0.5 p-0.5 bg-slate-100 rounded-lg border border-slate-200">
-                {(['left', 'center', 'right'] as TextAlignment[]).map((align) => (
-                  <button
-                    key={align}
-                    type="button"
-                    onClick={() => onChange({ ...settings, headerAlign: align })}
-                    className={`p-1 rounded transition-colors ${
-                      settings.headerAlign === align
-                        ? 'bg-blue-600 text-white shadow-2xs font-medium'
-                        : 'text-slate-600 hover:bg-slate-200'
-                    }`}
-                  >
-                    {align === 'left' && <AlignLeft className="w-3 h-3" />}
-                    {align === 'center' && <AlignCenter className="w-3 h-3" />}
-                    {align === 'right' && <AlignRight className="w-3 h-3" />}
-                  </button>
-                ))}
+                {(['left', 'center', 'right'] as TextAlignment[]).map((align) => {
+                  const currentAlign = settings.headerAlign || 'right';
+                  return (
+                    <button
+                      key={align}
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => onChange({ ...settings, headerAlign: align })}
+                      className={`p-1 rounded transition-colors ${
+                        currentAlign === align
+                          ? 'bg-blue-600 text-white shadow-2xs font-medium'
+                          : 'text-slate-600 hover:bg-slate-200'
+                      }`}
+                      title={align === 'left' ? 'Vlevo' : align === 'center' ? 'Na střed' : 'Vpravo'}
+                    >
+                      {align === 'left' && <AlignLeft className="w-3 h-3" />}
+                      {align === 'center' && <AlignCenter className="w-3 h-3" />}
+                      {align === 'right' && <AlignRight className="w-3 h-3" />}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -130,22 +135,27 @@ export const HeaderFooterTab: React.FC<Props> = ({ settings, onChange }) => {
             <div className="flex items-center gap-1 pt-0.5">
               <span className="text-[10px] text-slate-400 mr-1 font-medium">Zarovnání:</span>
               <div className="flex items-center gap-0.5 p-0.5 bg-slate-100 rounded-lg border border-slate-200">
-                {(['left', 'center', 'right'] as TextAlignment[]).map((align) => (
-                  <button
-                    key={align}
-                    type="button"
-                    onClick={() => onChange({ ...settings, footerAlign: align })}
-                    className={`p-1 rounded transition-colors ${
-                      settings.footerAlign === align
-                        ? 'bg-blue-600 text-white shadow-2xs font-medium'
-                        : 'text-slate-600 hover:bg-slate-200'
-                    }`}
-                  >
-                    {align === 'left' && <AlignLeft className="w-3 h-3" />}
-                    {align === 'center' && <AlignCenter className="w-3 h-3" />}
-                    {align === 'right' && <AlignRight className="w-3 h-3" />}
-                  </button>
-                ))}
+                {(['left', 'center', 'right'] as TextAlignment[]).map((align) => {
+                  const currentAlign = settings.footerAlign || 'left';
+                  return (
+                    <button
+                      key={align}
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => onChange({ ...settings, footerAlign: align })}
+                      className={`p-1 rounded transition-colors ${
+                        currentAlign === align
+                          ? 'bg-blue-600 text-white shadow-2xs font-medium'
+                          : 'text-slate-600 hover:bg-slate-200'
+                      }`}
+                      title={align === 'left' ? 'Vlevo' : align === 'center' ? 'Na střed' : 'Vpravo'}
+                    >
+                      {align === 'left' && <AlignLeft className="w-3 h-3" />}
+                      {align === 'center' && <AlignCenter className="w-3 h-3" />}
+                      {align === 'right' && <AlignRight className="w-3 h-3" />}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -176,20 +186,24 @@ export const HeaderFooterTab: React.FC<Props> = ({ settings, onChange }) => {
 
           {settings.pageNumbering !== 'none' && (
             <div className="flex items-center gap-0.5 p-0.5 bg-slate-100 rounded-lg border border-slate-200">
-              {(['left', 'center', 'right'] as TextAlignment[]).map((pos) => (
-                <button
-                  key={pos}
-                  type="button"
-                  onClick={() => onChange({ ...settings, pageNumberPosition: pos })}
-                  className={`flex-1 py-1 text-[10px] rounded transition-colors ${
-                    settings.pageNumberPosition === pos
-                      ? 'bg-blue-600 text-white font-medium shadow-2xs'
-                      : 'text-slate-600 hover:bg-slate-200'
-                  }`}
-                >
-                  {pos === 'left' ? 'Vlevo' : pos === 'center' ? 'Střed' : 'Vpravo'}
-                </button>
-              ))}
+              {(['left', 'center', 'right'] as TextAlignment[]).map((pos) => {
+                const currentPos = settings.pageNumberPosition || 'right';
+                return (
+                  <button
+                    key={pos}
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => onChange({ ...settings, pageNumberPosition: pos })}
+                    className={`flex-1 py-1 text-[10px] rounded transition-colors ${
+                      currentPos === pos
+                        ? 'bg-blue-600 text-white font-medium shadow-2xs'
+                        : 'text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    {pos === 'left' ? 'Vlevo' : pos === 'center' ? 'Střed' : 'Vpravo'}
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>

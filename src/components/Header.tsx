@@ -148,6 +148,7 @@ export const Header: React.FC<Props> = ({
       <div className="flex items-center gap-0.5 sm:gap-1">
         <button
           type="button"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => editor?.chain().focus().undo().run()}
           disabled={!editor?.can().undo()}
           className="p-1.5 rounded-lg text-slate-600 hover:text-blue-700 hover:bg-white/80 disabled:opacity-30 disabled:pointer-events-none transition-colors"
@@ -157,6 +158,7 @@ export const Header: React.FC<Props> = ({
         </button>
         <button
           type="button"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => editor?.chain().focus().redo().run()}
           disabled={!editor?.can().redo()}
           className="p-1.5 rounded-lg text-slate-600 hover:text-blue-700 hover:bg-white/80 disabled:opacity-30 disabled:pointer-events-none transition-colors"

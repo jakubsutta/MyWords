@@ -144,6 +144,97 @@ export const DocumentPreviewModal: React.FC<Props> = ({
     return headerFooterSettings.footerText;
   };
 
+  const getEffectiveHeaderAlign = (isEven: boolean): 'left' | 'center' | 'right' => {
+    const align = headerFooterSettings.headerAlign || 'right';
+    if (align === 'center') return 'center';
+    if (headerFooterSettings.differentOddEven) {
+      if (align === 'right') return isEven ? 'left' : 'right';
+      if (align === 'left') return isEven ? 'right' : 'left';
+    }
+    return align;
+  };
+
+  const getEffectiveFooterAlign = (isEven: boolean): 'left' | 'center' | 'right' => {
+    const align = headerFooterSettings.footerAlign || 'left';
+    if (align === 'center') return 'center';
+    if (headerFooterSettings.differentOddEven) {
+      if (align === 'left') return isEven ? 'right' : 'left';
+      if (align === 'right') return isEven ? 'left' : 'right';
+    }
+    return align;
+  };
+
+  const getEffectivePageNumAlign = (isEven: boolean): 'left' | 'center' | 'right' => {
+    const pos = headerFooterSettings.pageNumberPosition || 'right';
+    if (pos === 'center') return 'center';
+    if (isBook || headerFooterSettings.differentOddEven) {
+      if (pos === 'right') return isEven ? 'left' : 'right';
+      if (pos === 'left') return isEven ? 'right' : 'left';
+    }
+    return pos;
+  };
+
+  const renderHeaderContent = (pNum: number, isEven: boolean) => {
+    const text = getHeaderText(pNum);
+    const align = getEffectiveHeaderAlign(isEven);
+
+    return (
+      <div
+        className={`w-full flex items-center min-w-0 ${
+          align === 'left'
+            ? 'justify-start text-left'
+            : align === 'center'
+            ? 'justify-center text-center'
+            : 'justify-end text-right'
+        }`}
+      >
+        <span className="truncate font-serif italic text-slate-500 text-xs">
+          {text}
+        </span>
+      </div>
+    );
+  };
+
+  const renderFooterContent = (pNum: number, isEven: boolean) => {
+    const text = getFooterText(pNum);
+    const showNumber = headerFooterSettings.pageNumbering !== 'none';
+    const pageNumNode = showNumber ? (
+      <span className="font-mono text-[11px] font-semibold text-slate-600 shrink-0">
+        {renderPageNumber(pNum)}
+      </span>
+    ) : null;
+    const textNode = text ? (
+      <span className="truncate text-slate-400 text-[10px] font-serif">
+        {text}
+      </span>
+    ) : null;
+
+    const textCol = getEffectiveFooterAlign(isEven);
+    const numCol = getEffectivePageNumAlign(isEven);
+
+    return (
+      <div className="w-full grid grid-cols-3 items-center text-xs">
+        {/* Col 1: Left */}
+        <div className="flex items-center justify-start gap-2 min-w-0 overflow-hidden">
+          {numCol === 'left' && pageNumNode}
+          {textCol === 'left' && textNode}
+        </div>
+
+        {/* Col 2: Center */}
+        <div className="flex items-center justify-center gap-2 min-w-0 text-center overflow-hidden">
+          {textCol === 'center' && textNode}
+          {numCol === 'center' && pageNumNode}
+        </div>
+
+        {/* Col 3: Right */}
+        <div className="flex items-center justify-end gap-2 min-w-0 text-right overflow-hidden">
+          {textCol === 'right' && textNode}
+          {numCol === 'right' && pageNumNode}
+        </div>
+      </div>
+    );
+  };
+
   const getPageMargins = (pageNo: number) => {
     if (isBook) {
       if (pageNo % 2 === 0) {
@@ -368,9 +459,7 @@ export const DocumentPreviewModal: React.FC<Props> = ({
                         paddingRight: `${getPageMargins(spreadLeftPageNum).right}mm`,
                       }}
                     >
-                      <span className="text-left w-full truncate font-serif italic text-slate-500">
-                        {getHeaderText(spreadLeftPageNum)}
-                      </span>
+                      {renderHeaderContent(spreadLeftPageNum, true)}
                     </div>
                   )}
 
@@ -383,19 +472,14 @@ export const DocumentPreviewModal: React.FC<Props> = ({
                   {/* Left Footer */}
                   {headerFooterSettings.showFooter && (
                     <div
-                      className="absolute bottom-0 left-0 right-0 text-xs text-slate-400 select-none border-t border-slate-100 flex items-center justify-between"
+                      className="absolute bottom-0 left-0 right-0 text-xs text-slate-400 select-none border-t border-slate-100 flex items-center"
                       style={{
                         height: `${pageSettings.margins.bottom * 0.8}mm`,
                         paddingLeft: `${getPageMargins(spreadLeftPageNum).left}mm`,
                         paddingRight: `${getPageMargins(spreadLeftPageNum).right}mm`,
                       }}
                     >
-                      <span className="font-mono text-[11px] font-semibold text-slate-600">
-                        {renderPageNumber(spreadLeftPageNum)}
-                      </span>
-                      <span className="truncate text-slate-400 text-[10px]">
-                        {getFooterText(spreadLeftPageNum)}
-                      </span>
+                      {renderFooterContent(spreadLeftPageNum, true)}
                     </div>
                   )}
                 </div>
@@ -439,9 +523,7 @@ export const DocumentPreviewModal: React.FC<Props> = ({
                       paddingRight: `${getPageMargins(spreadRightPageNum!).right}mm`,
                     }}
                   >
-                    <span className="text-right w-full truncate font-serif italic text-slate-500">
-                      {getHeaderText(spreadRightPageNum!)}
-                    </span>
+                    {renderHeaderContent(spreadRightPageNum!, false)}
                   </div>
                 )}
 
@@ -454,19 +536,14 @@ export const DocumentPreviewModal: React.FC<Props> = ({
                 {/* Right Footer */}
                 {headerFooterSettings.showFooter && (
                   <div
-                    className="absolute bottom-0 left-0 right-0 text-xs text-slate-400 select-none border-t border-slate-100 flex items-center justify-between"
+                    className="absolute bottom-0 left-0 right-0 text-xs text-slate-400 select-none border-t border-slate-100 flex items-center"
                     style={{
                       height: `${pageSettings.margins.bottom * 0.8}mm`,
                       paddingLeft: `${getPageMargins(spreadRightPageNum!).left}mm`,
                       paddingRight: `${getPageMargins(spreadRightPageNum!).right}mm`,
                     }}
                   >
-                    <span className="truncate text-slate-400 text-[10px]">
-                      {getFooterText(spreadRightPageNum!)}
-                    </span>
-                    <span className="font-mono text-[11px] font-semibold text-slate-600">
-                      {renderPageNumber(spreadRightPageNum!)}
-                    </span>
+                    {renderFooterContent(spreadRightPageNum!, false)}
                   </div>
                 )}
               </div>
@@ -496,16 +573,14 @@ export const DocumentPreviewModal: React.FC<Props> = ({
                     {/* Page Header */}
                     {headerFooterSettings.showHeader && (
                       <div
-                        className="absolute top-0 left-0 right-0 text-xs text-slate-400 select-none border-b border-slate-100 flex items-center justify-between"
+                        className="absolute top-0 left-0 right-0 text-xs text-slate-400 select-none border-b border-slate-100 flex items-center"
                         style={{
                           height: `${pageSettings.margins.top * 0.8}mm`,
                           paddingLeft: `${pageMargins.left}mm`,
                           paddingRight: `${pageMargins.right}mm`,
                         }}
                       >
-                        <span className="font-serif italic text-slate-500 truncate w-full">
-                          {getHeaderText(pNum)}
-                        </span>
+                        {renderHeaderContent(pNum, pNum % 2 === 0)}
                       </div>
                     )}
 
@@ -518,21 +593,14 @@ export const DocumentPreviewModal: React.FC<Props> = ({
                     {/* Page Footer */}
                     {headerFooterSettings.showFooter && (
                       <div
-                        className="absolute bottom-0 left-0 right-0 text-xs text-slate-400 select-none border-t border-slate-100 flex items-center justify-between"
+                        className="absolute bottom-0 left-0 right-0 text-xs text-slate-400 select-none border-t border-slate-100 flex items-center"
                         style={{
                           height: `${pageSettings.margins.bottom * 0.8}mm`,
                           paddingLeft: `${pageMargins.left}mm`,
                           paddingRight: `${pageMargins.right}mm`,
                         }}
                       >
-                        <span className="truncate text-slate-400 text-[10px]">
-                          {getFooterText(pNum)}
-                        </span>
-                        {headerFooterSettings.pageNumbering !== 'none' && (
-                          <span className="font-mono text-[11px] font-semibold text-slate-600">
-                            {renderPageNumber(pNum)}
-                          </span>
-                        )}
+                        {renderFooterContent(pNum, pNum % 2 === 0)}
                       </div>
                     )}
                   </div>

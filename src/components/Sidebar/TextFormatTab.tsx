@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Editor } from '@tiptap/react';
 import {
   Bold,
@@ -53,6 +53,79 @@ const HIGHLIGHT_COLORS = [
 ];
 
 export const TextFormatTab: React.FC<Props> = ({ editor }) => {
+  // Re-render on TipTap state changes (selection, text changes, active formatting)
+  const [, setTick] = useState(0);
+  const lastSelectionRef = useRef<{ from: number; to: number } | null>(null);
+
+  useEffect(() => {
+    if (!editor) return;
+
+    const handleUpdate = () => {
+      const { from, to, empty } = editor.state.selection;
+      if (!empty) {
+        lastSelectionRef.current = { from, to };
+      }
+      setTick((t) => (t + 1) % 1000000);
+    };
+
+    editor.on('transaction', handleUpdate);
+    editor.on('selectionUpdate', handleUpdate);
+
+    return () => {
+      editor.off('transaction', handleUpdate);
+      editor.off('selectionUpdate', handleUpdate);
+    };
+  }, [editor]);
+
+  // Execute chain while restoring selection if needed
+  const executeChain = useCallback(
+    (fn: (chain: any) => any) => {
+      if (!editor) return;
+      let chain = editor.chain().focus();
+      if (editor.state.selection.empty && lastSelectionRef.current) {
+        const { from, to } = lastSelectionRef.current;
+        const docSize = editor.state.doc.content.size;
+        if (from <= docSize && to <= docSize && from !== to) {
+          chain = chain.setTextSelection({ from, to });
+        }
+      }
+      fn(chain).run();
+    },
+    [editor]
+  );
+
+  // Helper to create button handlers that prevent blur on mousedown and execute command
+  const action = (
+    fn: (chain: any) => any,
+    domFallback?: { cmd: string; value?: string }
+  ) => ({
+    onMouseDown: (e: React.MouseEvent) => {
+      e.preventDefault(); // Prevents editor blur and selection loss
+    },
+    onClick: (e: React.MouseEvent) => {
+      e.preventDefault();
+      if (!editor) return;
+
+      // Fallback: If user selected text in a contenteditable outside of TipTap (e.g. spread view)
+      const sel = window.getSelection();
+      if (
+        domFallback &&
+        sel &&
+        !sel.isCollapsed &&
+        !editor.view.dom.contains(sel.anchorNode)
+      ) {
+        try {
+          document.execCommand(domFallback.cmd, false, domFallback.value);
+          const el = sel.anchorNode?.parentElement?.closest('[contenteditable="true"]');
+          if (el) el.dispatchEvent(new Event('input', { bubbles: true }));
+          return;
+        } catch {}
+      }
+
+      executeChain(fn);
+    },
+  });
+
   if (!editor) return null;
 
   const currentHeading = editor.isActive('heading', { level: 1 })
@@ -63,13 +136,21 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
     ? 'h3'
     : 'p';
 
+  const currentFontFamily = editor.getAttributes('textStyle').fontFamily || FONTS[0].value;
+  const currentFontSize = editor.getAttributes('textStyle').fontSize || '11pt';
+  const currentColor = editor.getAttributes('textStyle').color || '#000000';
+
   return (
-    <div className="space-y-3.5 text-xs">
+    <div className="space-y-3.5 text-xs select-none">
       {/* Font Family & Size in a compact row */}
       <div>
         <div className="flex items-center gap-1.5 mb-1">
           <select
-            onChange={(e) => editor.chain().focus().setFontFamily(e.target.value).run()}
+            value={currentFontFamily}
+            onChange={(e) => {
+              const val = e.target.value;
+              executeChain((c) => c.setFontFamily(val));
+            }}
             className="select-custom flex-1 py-1.5 pl-2.5 bg-white border border-slate-200/90 hover:border-slate-300 rounded-lg shadow-2xs focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:outline-none text-xs font-medium cursor-pointer transition-all"
           >
             {FONTS.map((font) => (
@@ -80,8 +161,11 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
           </select>
 
           <select
-            onChange={(e) => editor.chain().focus().setFontSize(e.target.value).run()}
-            defaultValue="11pt"
+            value={currentFontSize}
+            onChange={(e) => {
+              const val = e.target.value;
+              executeChain((c) => c.setFontSize(val));
+            }}
             className="select-custom w-22 py-1.5 pl-2 bg-white border border-slate-200/90 hover:border-slate-300 rounded-lg shadow-2xs focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:outline-none text-xs font-mono cursor-pointer transition-all"
             title="Velikost písma"
           >
@@ -98,7 +182,7 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
       <div className="flex items-center gap-1 p-0.5 bg-slate-100/90 rounded-lg border border-slate-200">
         <button
           type="button"
-          onClick={() => editor.chain().focus().setParagraph().run()}
+          {...action((c) => c.setParagraph(), { cmd: 'formatBlock', value: '<p>' })}
           className={`flex-1 py-1 rounded text-center transition-all ${
             currentHeading === 'p'
               ? 'bg-white shadow-2xs text-blue-700 font-semibold'
@@ -109,7 +193,7 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
         </button>
         <button
           type="button"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+          {...action((c) => c.toggleHeading({ level: 1 }), { cmd: 'formatBlock', value: '<h1>' })}
           className={`flex-1 py-1 rounded text-center transition-all ${
             currentHeading === 'h1'
               ? 'bg-white shadow-2xs text-blue-700 font-bold'
@@ -120,7 +204,7 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
         </button>
         <button
           type="button"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+          {...action((c) => c.toggleHeading({ level: 2 }), { cmd: 'formatBlock', value: '<h2>' })}
           className={`flex-1 py-1 rounded text-center transition-all ${
             currentHeading === 'h2'
               ? 'bg-white shadow-2xs text-blue-700 font-bold'
@@ -131,7 +215,7 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
         </button>
         <button
           type="button"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+          {...action((c) => c.toggleHeading({ level: 3 }), { cmd: 'formatBlock', value: '<h3>' })}
           className={`flex-1 py-1 rounded text-center transition-all ${
             currentHeading === 'h3'
               ? 'bg-white shadow-2xs text-blue-700 font-bold'
@@ -147,7 +231,7 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
         <button
           type="button"
           title="Tučné (Ctrl+B)"
-          onClick={() => editor.chain().focus().toggleBold().run()}
+          {...action((c) => c.toggleBold(), { cmd: 'bold' })}
           className={`p-1.5 rounded transition-colors ${
             editor.isActive('bold')
               ? 'bg-white shadow-2xs text-blue-600 font-bold border border-slate-200'
@@ -159,7 +243,7 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
         <button
           type="button"
           title="Kurzíva (Ctrl+I)"
-          onClick={() => editor.chain().focus().toggleItalic().run()}
+          {...action((c) => c.toggleItalic(), { cmd: 'italic' })}
           className={`p-1.5 rounded transition-colors ${
             editor.isActive('italic')
               ? 'bg-white shadow-2xs text-blue-600 font-bold border border-slate-200'
@@ -171,7 +255,7 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
         <button
           type="button"
           title="Podtržené (Ctrl+U)"
-          onClick={() => editor.chain().focus().toggleUnderline().run()}
+          {...action((c) => c.toggleUnderline(), { cmd: 'underline' })}
           className={`p-1.5 rounded transition-colors ${
             editor.isActive('underline')
               ? 'bg-white shadow-2xs text-blue-600 font-bold border border-slate-200'
@@ -183,7 +267,7 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
         <button
           type="button"
           title="Přeškrtnuté"
-          onClick={() => editor.chain().focus().toggleStrike().run()}
+          {...action((c) => c.toggleStrike(), { cmd: 'strikeThrough' })}
           className={`p-1.5 rounded transition-colors ${
             editor.isActive('strike')
               ? 'bg-white shadow-2xs text-blue-600 font-bold border border-slate-200'
@@ -195,7 +279,7 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
         <button
           type="button"
           title="Dolní index"
-          onClick={() => editor.chain().focus().toggleSubscript().run()}
+          {...action((c) => c.toggleSubscript(), { cmd: 'subscript' })}
           className={`p-1.5 rounded transition-colors ${
             editor.isActive('subscript')
               ? 'bg-white shadow-2xs text-blue-600 font-bold border border-slate-200'
@@ -207,7 +291,7 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
         <button
           type="button"
           title="Horní index"
-          onClick={() => editor.chain().focus().toggleSuperscript().run()}
+          {...action((c) => c.toggleSuperscript(), { cmd: 'superscript' })}
           className={`p-1.5 rounded transition-colors ${
             editor.isActive('superscript')
               ? 'bg-white shadow-2xs text-blue-600 font-bold border border-slate-200'
@@ -220,7 +304,7 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
         <button
           type="button"
           title="Vymazat formátování"
-          onClick={() => editor.chain().focus().unsetAllMarks().clearNodes().run()}
+          {...action((c) => c.unsetAllMarks().clearNodes(), { cmd: 'removeFormat' })}
           className="p-1.5 rounded text-slate-400 hover:bg-red-50 hover:text-red-600 transition-colors ml-auto"
         >
           <RemoveFormatting className="w-3.5 h-3.5" />
@@ -233,7 +317,7 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
           <button
             type="button"
             title="Vlevo"
-            onClick={() => editor.chain().focus().setTextAlign('left').run()}
+            {...action((c) => c.setTextAlign('left'), { cmd: 'justifyLeft' })}
             className={`flex-1 flex justify-center py-1 rounded transition-colors ${
               editor.isActive({ textAlign: 'left' })
                 ? 'bg-white shadow-2xs text-blue-600 border border-slate-200 font-semibold'
@@ -245,7 +329,7 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
           <button
             type="button"
             title="Na střed"
-            onClick={() => editor.chain().focus().setTextAlign('center').run()}
+            {...action((c) => c.setTextAlign('center'), { cmd: 'justifyCenter' })}
             className={`flex-1 flex justify-center py-1 rounded transition-colors ${
               editor.isActive({ textAlign: 'center' })
                 ? 'bg-white shadow-2xs text-blue-600 border border-slate-200 font-semibold'
@@ -257,7 +341,7 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
           <button
             type="button"
             title="Vpravo"
-            onClick={() => editor.chain().focus().setTextAlign('right').run()}
+            {...action((c) => c.setTextAlign('right'), { cmd: 'justifyRight' })}
             className={`flex-1 flex justify-center py-1 rounded transition-colors ${
               editor.isActive({ textAlign: 'right' })
                 ? 'bg-white shadow-2xs text-blue-600 border border-slate-200 font-semibold'
@@ -269,7 +353,7 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
           <button
             type="button"
             title="Do bloku (Justify)"
-            onClick={() => editor.chain().focus().setTextAlign('justify').run()}
+            {...action((c) => c.setTextAlign('justify'), { cmd: 'justifyFull' })}
             className={`flex-1 flex justify-center py-1 rounded transition-colors ${
               editor.isActive({ textAlign: 'justify' })
                 ? 'bg-white shadow-2xs text-blue-600 border border-slate-200 font-semibold'
@@ -291,7 +375,7 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
               <button
                 key={spacing}
                 type="button"
-                onClick={() => editor?.chain().focus().setLineHeight(spacing).run()}
+                {...action((c) => c.setLineHeight(spacing))}
                 className={`px-1.5 py-1 text-[10px] rounded transition-all ${
                   isActive
                     ? 'bg-white shadow-2xs text-blue-600 border border-slate-200 font-bold'
@@ -318,15 +402,21 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
               <button
                 key={col}
                 type="button"
-                onClick={() => editor.chain().focus().setColor(col).run()}
+                {...action((c) => c.setColor(col), { cmd: 'foreColor', value: col })}
                 style={{ backgroundColor: col }}
-                className="w-4 h-4 rounded-full border border-black/10 hover:scale-115 transition-transform"
+                className={`w-4 h-4 rounded-full border transition-transform ${
+                  currentColor === col ? 'ring-2 ring-blue-500 ring-offset-1 scale-110' : 'border-black/10 hover:scale-115'
+                }`}
                 title={col}
               />
             ))}
             <input
               type="color"
-              onChange={(e) => editor.chain().focus().setColor(e.target.value).run()}
+              value={currentColor}
+              onChange={(e) => {
+                const val = e.target.value;
+                executeChain((c) => c.setColor(val));
+              }}
               className="w-4 h-4 rounded cursor-pointer border border-slate-300 ml-1"
               title="Vlastní barva"
             />
@@ -343,7 +433,7 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
               <button
                 key={col}
                 type="button"
-                onClick={() => editor.chain().focus().setHighlight({ color: col }).run()}
+                {...action((c) => c.setHighlight({ color: col }), { cmd: 'hiliteColor', value: col })}
                 style={{ backgroundColor: col }}
                 className="w-4 h-4 rounded-sm border border-slate-300 hover:scale-115 transition-transform"
                 title={col}
@@ -351,8 +441,8 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
             ))}
             <button
               type="button"
-              onClick={() => editor.chain().focus().unsetHighlight().run()}
-              className="text-[10px] text-slate-400 hover:text-slate-700 ml-1 px-1"
+              {...action((c) => c.unsetHighlight())}
+              className="text-[10px] text-slate-400 hover:text-slate-700 ml-1 px-1 font-bold"
               title="Zrušit zvýraznění"
             >
               ✕
@@ -365,7 +455,7 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
       <div className="grid grid-cols-4 gap-1">
         <button
           type="button"
-          onClick={() => editor.chain().focus().toggleBulletList().run()}
+          {...action((c) => c.toggleBulletList(), { cmd: 'insertUnorderedList' })}
           className={`flex items-center justify-center gap-1 py-1.5 rounded-lg border text-xs transition-all ${
             editor.isActive('bulletList')
               ? 'bg-blue-50 border-blue-400 text-blue-700 font-semibold'
@@ -378,7 +468,7 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
         </button>
         <button
           type="button"
-          onClick={() => editor.chain().focus().toggleOrderedList().run()}
+          {...action((c) => c.toggleOrderedList(), { cmd: 'insertOrderedList' })}
           className={`flex items-center justify-center gap-1 py-1.5 rounded-lg border text-xs transition-all ${
             editor.isActive('orderedList')
               ? 'bg-blue-50 border-blue-400 text-blue-700 font-semibold'
@@ -391,7 +481,7 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
         </button>
         <button
           type="button"
-          onClick={() => editor.chain().focus().toggleBlockquote().run()}
+          {...action((c) => c.toggleBlockquote())}
           className={`flex items-center justify-center gap-1 py-1.5 rounded-lg border text-xs transition-all ${
             editor.isActive('blockquote')
               ? 'bg-blue-50 border-blue-400 text-blue-700 font-semibold'
@@ -404,7 +494,7 @@ export const TextFormatTab: React.FC<Props> = ({ editor }) => {
         </button>
         <button
           type="button"
-          onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+          {...action((c) => c.toggleCodeBlock())}
           className={`flex items-center justify-center gap-1 py-1.5 rounded-lg border text-xs transition-all ${
             editor.isActive('codeBlock')
               ? 'bg-blue-50 border-blue-400 text-blue-700 font-semibold'
